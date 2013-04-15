@@ -1,6 +1,6 @@
 def get_motifs(data, interval):
 	"""Runs MTA on time-series data represented as a list of floats.
-	Returns a list of segments—(start, end) tuples—identified as possible motifs.
+	Returns a list of segments–(start, end) tuples–identified as possible motifs.
 	"""
 	pass
 
