@@ -1,6 +1,6 @@
 def get_motifs(data, interval):
 	"""Runs MTA on time-series data represented as a list of floats.
-	Returns a list of segments–(start, end) tuples–identified as possible motifs.
+	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
 	pass
 
@@ -29,7 +29,7 @@ def initialize_tracker_population():
 	in the data set."""
 	pass
 
-def _generate_symbol_stage_matrix(symbols):
+def _generate_symbol_stage_matrix(symbols, threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
 	symbol matrix that are redundant, since using a sliding window necessarily
 	results in overlap of the same motifs), this function generates a new symbol
@@ -40,18 +40,18 @@ def _generate_symbol_stage_matrix(symbols):
 	pass
 
 def _match_trackers(trackers, symbols):
-	"""#Matches the symbols in each tracker to symbols within the symbol matrix;
+	"""Matches the symbols in each tracker to symbols within the symbol matrix;
 	if a perfect match exists, the match count of the corresponding tracker is
 	incremented by one."""
 	pass
 
-def _eliminate_unmatched_trackers(trackers):
+def _eliminate_unmatched_trackers(trackers, threshold):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
 	pass
 
-def _verify_genuine_motifs(trackers):
+def _verify_genuine_motifs(trackers, threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
 	between them; if that distance is greater than a given threshold (which
 	dynamically increases based on the length of the motif involved), these
