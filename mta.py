@@ -1,8 +1,11 @@
+import numpy
+
 def get_motifs(data, interval):
 	"""Runs MTA on time-series data represented as a list of floats.
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
 	pass
+
 
 def _convert_time_series (data, interval):
 	"""Establishes symbolic library and normalizes the time series data, then
@@ -16,18 +19,26 @@ def _convert_time_series (data, interval):
 	"""
 	pass
 
-def _generate_symbol_matrix(interval):
+
+def _generate_symbol_matrix(time_series_data, interval, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
 	initialize our trackers."""
-	pass
+	
+	for i in range(len(time_series_data)):
+		for idx, score1, score2 in enumerate(zip(percentile_list[1:], percentile_list[-1])):
+			if i + interval < len(time_series_data):
+				if score1 < mean(time_series_data[i:i+interval]) < score2 :
+					symbol_matrix.append(symbol_list[idx])
+
 
 def initialize_tracker_population():
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
 	pass
+
 
 def _generate_symbol_stage_matrix(symbols, threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
@@ -39,17 +50,20 @@ def _generate_symbol_stage_matrix(symbols, threshold):
 	motifs)."""
 	pass
 
+
 def _match_trackers(trackers, symbols):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
 	if a perfect match exists, the match count of the corresponding tracker is
 	incremented by one."""
 	pass
 
+
 def _eliminate_unmatched_trackers(trackers, threshold):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
 	pass
+
 
 def _verify_genuine_motifs(trackers, threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
@@ -59,18 +73,41 @@ def _verify_genuine_motifs(trackers, threshold):
 	successful are stored in a motif list."""
 	pass
 
-def _mutate_trackers(trackers, mutations):
+	# may not be necessary in phase I of implementation
+
+
+def _mutate_trackers(tracker_list, mutation_template):
 	"""The tracker list from the first generation represents all possible
 	symbols in the data set; we use this as a template for further mutation of
 	our trackers. Each parent tracker gives birth to trackers one symbol longer
 	in length, with this symbol matching each of the possibilities in the
 	mutation template. These new, longer trackers will then be used to find
 	longer motifs."""
-	pass
 
-def _streamline_motifs(motifs):
+	for tracker in tracker_list:
+
+		for char in mutation_template:
+
+			tracker_list.append(tracker + char)
+
+		tracker_list.remove(tracker)
+
+
+def _streamline_motifs(motif_list):
 	"""At the end of the MTA, we eliminate motifs that can be found within
 	larger motifs to streamline the process. We might modify this step, however,
 	since musical elements like the beat might be completely encapsulated within
 	larger motifs, but we still want to be able to tease smaller motifs out."""
-	pass
+
+	motif_list = sorted(motif_list, key=lambda motif: len(motif.word))
+
+	def remove_submotif(submotif, motif):
+
+		for start in motif.starts:
+			for substart in submotif.starts:
+				if start <= substart and substart + len(submotif.word) <= motif.start + len(motif.word):
+					submotif.starts.remove(substart)
+
+	for idx, submotif in enumerate(motif_list):
+		for motif in motif_list[idx + 1:]:
+			remove_submotif(submotif, motif)
