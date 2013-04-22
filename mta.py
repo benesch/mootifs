@@ -8,6 +8,9 @@ match_threshold_r = 0
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 
+class tracker_class:
+	#consists of a word and time start
+
 def mean (lst) : return sum(lst) / len (lst)
 
 def get_motifs(data, interval):
@@ -53,6 +56,8 @@ def _generate_symbol_matrix(time_series_data, interval, percentile_list):
 	to start at any specified point), and store these in a list to later
 	initialize our trackers."""
 	
+	symbol_matrix = []
+
 	for i in range(len(time_series_data)):
 		for idx, score1, score2 in enumerate(zip(percentile_list[1:], percentile_list[-1])):
 			if i + interval < len(time_series_data):
@@ -65,7 +70,6 @@ def initialize_tracker_population():
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
 	pass
-
 
 def _generate_symbol_stage_matrix(symbols, threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
@@ -112,11 +116,8 @@ def _mutate_trackers(tracker_list, mutation_template):
 	longer motifs."""
 
 	for tracker in tracker_list:
-
 		for char in mutation_template:
-
 			tracker_list.append(tracker + char)
-
 		tracker_list.remove(tracker)
 
 
