@@ -8,8 +8,11 @@ match_threshold_r = 0
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 
-class tracker_class:
-	#consists of a word and time start
+
+class tracker_t:
+	def __init__(self, word, start, match_count):
+	self.word = word
+	self.start = start
 
 def mean (lst) : return sum(lst) / len (lst)
 
@@ -20,7 +23,7 @@ def get_motifs(data, interval):
 	pass
 
 
-def _convert_time_series (data, interval):
+def _convert_time_series (data, interval): -> "intervals":
 	"""Establishes symbolic library and normalizes the time series data, then
 	represents the data (represented as a list of floats) with that library
 	(i.e., each data point is converted into a symbol to be used in the
@@ -50,7 +53,7 @@ def _convert_time_series (data, interval):
 	intervals = [(stats.scoreatpercentile(array_time_series, 100/len(symbol_list)) for x in range(len(symbol_list)))]
 
 
-def _generate_symbol_matrix(time_series_data, interval, percentile_list):
+def _generate_symbol_matrix(time_series_data, interval, percentile_list): -> "word list" :
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
@@ -65,11 +68,20 @@ def _generate_symbol_matrix(time_series_data, interval, percentile_list):
 					symbol_matrix.append(symbol_list[idx])
 
 
-def initialize_tracker_population():
+def initialize_tracker_population(): "unique trackers of single symbol length":
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
-	pass
+	#Trackers are created of a length of one symbol
+	for idx, letter in enumerate (symbol_list)
+		Tracker(letter, 0, 0)
+
+	#A tracker comprises a sequence of 1 to w symbols.
+	#Motifs in T consist of subsequences of lengths from 1 to n.
+	#A subsequence will be represented by a symbol string containing w symbols.
+	#By specifying the length of a symbol s, we can reduce the subsequence from size n to size w, where w=n/s
+
+	#trackers must evolve each generation to match motifs represented by longer symbol strings.
 
 def _generate_symbol_stage_matrix(symbols, threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
@@ -119,8 +131,8 @@ def _mutate_trackers(tracker_list, mutation_template):
 		for char in mutation_template:
 			tracker_list.append(tracker + char)
 		tracker_list.remove(tracker)
-
-
+# Jelle notes that this is an infinite loop
+# build new list rather than changing arguments in place
 def _streamline_motifs(motif_list):
 	"""At the end of the MTA, we eliminate motifs that can be found within
 	larger motifs to streamline the process. We might modify this step, however,
