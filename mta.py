@@ -9,10 +9,11 @@ length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 
 
-class tracker_t:
+class tracker:
 	def __init__(self, word, start, match_count):
 	self.word = word
 	self.start = start
+	self.match_count = 0
 
 def mean (lst) : return sum(lst) / len (lst)
 
@@ -33,7 +34,7 @@ def _convert_time_series (data, interval): -> "intervals":
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-	stdev, mean_difs, lst_len = 0, 0, len(Differences)
+	# stdev, mean_difs, lst_len = 0, 0, len(Differences)
 
 	# #Differencing
 	# #Differences = [latter-former for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
@@ -50,7 +51,7 @@ def _convert_time_series (data, interval): -> "intervals":
 	# interval = (min_norm - max_norm) / alphabet_size_a
 	# mean_norm = mean (normalized)
 
-	intervals = [(stats.scoreatpercentile(array_time_series, 100/len(symbol_list)) for x in range(len(symbol_list)))]
+	return [(stats.scoreatpercentile(array_time_series, 100/len(symbol_list)) for x in range(len(symbol_list)))]
 
 
 def _generate_symbol_matrix(time_series_data, interval, percentile_list): -> "word list" :
@@ -67,23 +68,22 @@ def _generate_symbol_matrix(time_series_data, interval, percentile_list): -> "wo
 				if score1 < mean(time_series_data[i:i+interval]) < score2 :
 					symbol_matrix.append(symbol_list[idx])
 
+	return symbol_matrix
+
 
 def initialize_tracker_population(): "unique trackers of single symbol length":
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
 	#Trackers are created of a length of one symbol
-	for idx, letter in enumerate (symbol_list)
-		Tracker(letter, 0, 0)
+	tracker_list = []
+	for letter in symbol_list
+		tracker_list.append(tracker(letter, 0, 0))
 
-	#A tracker comprises a sequence of 1 to w symbols.
-	#Motifs in T consist of subsequences of lengths from 1 to n.
-	#A subsequence will be represented by a symbol string containing w symbols.
-	#By specifying the length of a symbol s, we can reduce the subsequence from size n to size w, where w=n/s
+	return tracker_list
 
-	#trackers must evolve each generation to match motifs represented by longer symbol strings.
 
-def _generate_symbol_stage_matrix(symbols, threshold):
+def _generate_symbol_stage_matrix(symbol_matrix, threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
 	symbol matrix that are redundant, since using a sliding window necessarily
 	results in overlap of the same motifs), this function generates a new symbol
@@ -91,24 +91,47 @@ def _generate_symbol_stage_matrix(symbols, threshold):
 	symbols that are different than the one included before (to a certain error
 	threshold, since long enough consecutive symbol repeats could match actual
 	motifs)."""
-	pass
+	
 
 
-def _match_trackers(trackers, symbols):
+def find_repeats(tracker_list, symbol_matrix):
+	for idx, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
+		if s1 = s2 then
+
+	# for s in symbol_list:
+	# 	for i in range(len(symbol_matrix)-threshold+1)
+	# 		for j in range(threshold):
+	# 			if (symbol_matrix[i+j] != s):
+	# 				break
+	# 		else:
+	# 			return 
+
+
+def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
 	if a perfect match exists, the match count of the corresponding tracker is
 	incremented by one."""
-	pass
+
+	for t in tracker_list
+		for i in range(len(time_series_data)):
+			if i + len(t.word) < len(time_series_data):
+				if t.word == symbol_matrix[i:len(t.word)]:
+					tracker.starts.append(i)
+
+	return tracker_list
 
 
-def _eliminate_unmatched_trackers(trackers, threshold):
+def _eliminate_unmatched_trackers(tracker_list, threshold):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
-	pass
+	for t in tracker_list
+		if t.match_count < 2
+			tracker.remove (t)
 
+	return tracker_list
 
-def _verify_genuine_motifs(trackers, threshold):
+def _verify_genuine_motifs(tracker_list, threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
 	between them; if that distance is greater than a given threshold (which
 	dynamically increases based on the length of the motif involved), these
@@ -127,12 +150,14 @@ def _mutate_trackers(tracker_list, mutation_template):
 	mutation template. These new, longer trackers will then be used to find
 	longer motifs."""
 
-	for tracker in tracker_list:
+	new_tracker_list = []
+	for t in tracker_list:
 		for char in mutation_template:
-			tracker_list.append(tracker + char)
+			new_tracker_list.append(t + char)
 		tracker_list.remove(tracker)
-# Jelle notes that this is an infinite loop
-# build new list rather than changing arguments in place
+
+	return new_tracker_list
+
 def _streamline_motifs(motif_list):
 	"""At the end of the MTA, we eliminate motifs that can be found within
 	larger motifs to streamline the process. We might modify this step, however,
@@ -149,7 +174,11 @@ def _streamline_motifs(motif_list):
 				if start <= substart and substart + len(submotif.word) <= motif.start + len(motif.word):
 					submotif.starts.remove(substart)
 
+		return motif
+
 	for idx, submotif in enumerate(motif_list):
 		for motif in motif_list[idx + 1:]:
-			remove_submotif(submotif, motif)
+			motif = remove_submotif(submotif, motif)
+
+	return motif_list
 
