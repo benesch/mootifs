@@ -75,7 +75,6 @@ def initialize_tracker_population(): "unique trackers of single symbol length":
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
-	#Trackers are created of a length of one symbol
 	tracker_list = []
 	for letter in symbol_list
 		tracker_list.append(tracker(letter, 0, 0))
