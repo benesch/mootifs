@@ -3,11 +3,14 @@ import string
 import scipy as stats
 import numpy as np
 
-alphabet_size_a = 0 #global so we have access in other functions
 match_threshold_r = 0
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
-
+normalized_points = []
+#PAA_interval = 5
+redundancy_threshold = 5
+deviation_threshold = 10
+motif_list = []
 
 class tracker:
 	def __init__(self, word, start, match_count):
@@ -15,16 +18,22 @@ class tracker:
 	self.start = start
 	self.match_count = 0
 
+class motif:
+	def __init__(start, end):
+	self.start = start
+	self.end = end
+
+
 def mean (lst) : return sum(lst) / len (lst)
 
-def get_motifs(data, interval):
+def get_motifs(time_series_data, interval):
 	"""Runs MTA on time-series data represented as a list of floats.
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
 	pass
 
 
-def _convert_time_series (data, interval): -> "intervals":
+def _convert_time_series (time_series_data):
 	"""Establishes symbolic library and normalizes the time series data, then
 	represents the data (represented as a list of floats) with that library
 	(i.e., each data point is converted into a symbol to be used in the
@@ -34,27 +43,27 @@ def _convert_time_series (data, interval): -> "intervals":
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-	# stdev, mean_difs, lst_len = 0, 0, len(Differences)
+	stdev, lst_len = 0, len(differences)
 
-	# #Differencing
-	# #Differences = [latter-former for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
-	# mean_difs = mean (lst)
-	# 	for elt in Differences:
-	# 		stdev = stdev + (elt - mean_difs)**2
-	# 		stdev = sqrt(stdev / float(lst_len-1))
-	# #Normalization
-	# normalized = list ((x - mean) / stdev) for x in Differences)
+	#Differencing
+	differenced_data = [latter-former for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
+	 #mean_difs = mean (lst)
+	 	#for elt in Differences:
+	 		#stdev = stdev + (elt - mean_difs)**2
+	 		#stdev = sqrt(stdev / float(lst_len-1))
+	#Normalization
+	#normalized_points = list ((x - mean_difs) / stdev) for x in Differences)
 
 	# #Symbolization
-	# alphabet_size_a = a
 	# min_norm, max_norm = min (normalized), max (normalized)
 	# interval = (min_norm - max_norm) / alphabet_size_a
 	# mean_norm = mean (normalized)
 
 	return [(stats.scoreatpercentile(array_time_series, 100/len(symbol_list)) for x in range(len(symbol_list)))]
 
-
-def _generate_symbol_matrix(time_series_data, interval, percentile_list): -> "word list" :
+	# this really should take in normalized_points instead of time_series_data.  The normalized_points
+	# is the differenced, normalized points, rather than the original time_series_data.
+def _generate_symbol_matrix(differenced_data, interval, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
@@ -82,7 +91,7 @@ def initialize_tracker_population(): "unique trackers of single symbol length":
 	return tracker_list
 
 
-def _generate_symbol_stage_matrix(symbol_matrix, threshold):
+def _generate_symbol_stage_matrix(symbol_matrix, redundancy_threshold):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
 	symbol matrix that are redundant, since using a sliding window necessarily
 	results in overlap of the same motifs), this function generates a new symbol
@@ -120,17 +129,17 @@ def _match_trackers(tracker_list, symbol_matrix):
 	return tracker_list
 
 
-def _eliminate_unmatched_trackers(tracker_list, threshold):
+def _eliminate_unmatched_trackers(tracker_list, count):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
-	for t in tracker_list
-		if t.match_count < 2
+	for t in tracker_list:
+		if t.match_count < count
 			tracker.remove (t)
 
 	return tracker_list
 
-def _verify_genuine_motifs(tracker_list, threshold):
+def _verify_genuine_motifs(tracker_list, deviation_threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
 	between them; if that distance is greater than a given threshold (which
 	dynamically increases based on the length of the motif involved), these
