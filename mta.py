@@ -8,7 +8,7 @@ length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
 #PAA_interval = 5
-redundancy_threshold = 5
+redun_threshold = 5
 deviation_threshold = 10
 motif_list = []
 
@@ -63,11 +63,11 @@ def _convert_time_series (time_series_data):
 
 	# this really should take in normalized_points instead of time_series_data.  The normalized_points
 	# is the differenced, normalized points, rather than the original time_series_data.
-def _generate_symbol_matrix(differenced_data, interval, percentile_list):
+def _generate_symbol_matrix(time_series_data, interval, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
-	initialize our trackers."""
+	initialize our trackers.  Should get passed in diffferenced data."""
 	
 	symbol_matrix = []
 
@@ -99,12 +99,24 @@ def _generate_symbol_stage_matrix(symbol_matrix, redundancy_threshold):
 	symbols that are different than the one included before (to a certain error
 	threshold, since long enough consecutive symbol repeats could match actual
 	motifs)."""
+
+#Given a time series T, containing a subsequence C beginning at p and a matching subsequence M beginning at q,
+#M is considered a trivial match to C if either p = q or there does not exist a subsequence M’ beginning at q’
+#such that ED(C,M’)>r, and either q<q’<p or p<q’<q[18] .
 	
 
 
 def find_repeats(tracker_list, symbol_matrix):
 	for idx, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
-		if s1 = s2 then
+		if s1 = s2
+
+
+	for idx, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
+		if s1 = s2 or d between 1st subseq to 2nd subseq > redun_threshold:
+			throw out
+		else
+			increase match count of tracker you are on
+
 
 	# for s in symbol_list:
 	# 	for i in range(len(symbol_matrix)-threshold+1)
