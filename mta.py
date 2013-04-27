@@ -1,9 +1,9 @@
 import string
 
-import scipy as stats
+from scipy import stats
 import numpy as np
 
-match_threshold_r = 0
+match_threshold = 2
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
@@ -25,11 +25,26 @@ class motif:
 
 def mean (lst) : return sum(lst) / len (lst)
 
-def get_motifs(time_series_data, interval):
+def get_motifs(time_series_data):
 	"""Runs MTA on time-series data represented as a list of floats.
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
-	pass
+
+	differenced_data, percentile_list = _convert_time_series(time_series_data)
+
+	symbol_matrix = _generate_symbol_matrix(differenced_data, percentile_list)
+
+	tracker_list = initialize_tracker_population()
+	mutation_template = tracker_list
+	motif_list = []
+
+	for i in range(len(symbol_matrix)/match_threshold):
+		_match_trackers(tracker_list, symbol_matrix)
+		_eliminate_unmatched_trackers(tracker_list)
+		motif_list.append(_streamline_motifs(tracker_list))
+		_mutate_trackers(tracker_list, mutation_template)
+
+	return motif_list
 
 
 def _convert_time_series (time_series_data):
@@ -42,10 +57,11 @@ def _convert_time_series (time_series_data):
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-	stdev, lst_len = 0, len(differences)
+#	stdev, lst_len = 0, len(differences)
 
 	#Differencing
-	differenced_data = [latter-former for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
+	differenced_data = [(latter-former) for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
+	percentile_list = [(stats.scoreatpercentile(differenced_data, 100/len(symbol_list)) for x in range(len(symbol_list)))]
 	 #mean_difs = mean (lst)
 	 	#for elt in Differences:
 	 		#stdev = stdev + (elt - mean_difs)**2
@@ -58,10 +74,11 @@ def _convert_time_series (time_series_data):
 	# interval = (min_norm - max_norm) / alphabet_size_a
 	# mean_norm = mean (normalized)
 
-	return [(stats.scoreatpercentile(differenced_data, 100/len(symbol_list)) for x in range(len(symbol_list)))]
+	return differenced_data, percentile_list
 
 	# this really should take in normalized_points instead of time_series_data.  The normalized_points
 	# is the differenced, normalized points, rather than the original time_series_data.
+
 def _generate_symbol_matrix(differenced_data, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
@@ -134,12 +151,12 @@ def _match_trackers(tracker_list, symbol_matrix):
 	return tracker_list
 
 
-def _eliminate_unmatched_trackers(tracker_list, count):
+def _eliminate_unmatched_trackers(tracker_list):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
 	for t in tracker_list:
-		if len(t.starts) < count:
+		if len(t.starts) < match_threshold:
 			tracker_list.remove(t)
 
 	return tracker_list
