@@ -17,12 +17,6 @@ class tracker:
 		self.word = word
 		self.starts = []
 
-class motif:
-	def __init__(start, end):
-		self.start = start
-		self.end = end
-
-
 def mean (lst) : return sum(lst) / len (lst)
 
 def get_motifs(time_series_data):
@@ -158,8 +152,6 @@ def _mutate_trackers(tracker_list, mutation_template):
 	for t in tracker_list:
 		for char in mutation_template:
 			new_tracker_list.append(t + char)
-		tracker_list.remove(tracker)
-
 	return new_tracker_list
 
 
