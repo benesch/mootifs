@@ -7,7 +7,7 @@ match_threshold = 2
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
-PAA_interval = 1
+PAA_interval = 20
 redundancy_threshold = 2
 deviation_threshold = 10
 
@@ -115,7 +115,7 @@ def _match_trackers(tracker_list, symbol_matrix):
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) < len(symbol_matrix):
-				if t.word == symbol_matrix[i:len(t.word)]:
+				if t.word == ''.join(symbol_matrix[i:len(t.word)]):
 					t.starts.append(i)
 
 	return tracker_list
@@ -153,9 +153,7 @@ def _mutate_trackers(tracker_list, mutation_template):
 	new_tracker_list = []
 	for t in tracker_list:
 		for char in mutation_template:
-			new_tracker_list.append(t + char)
-			t.word += char
-			new_tracker_list.append(t)
+			new_tracker_list.append(tracker(t.word + char))
 	return new_tracker_list
 
 
