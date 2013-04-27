@@ -7,10 +7,9 @@ match_threshold = 2
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
-PAA_interval = 5
+PAA_interval = 1
 redundancy_threshold = 2
 deviation_threshold = 10
-motif_list = []
 
 class tracker:
 	def __init__(self, word):
@@ -28,7 +27,7 @@ def get_motifs(time_series_data):
 
 	symbol_matrix = _generate_symbol_matrix(differenced_data, percentile_list)
 
-	tracker_list = initialize_tracker_population()
+	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
 	motif_list = []
 
@@ -53,7 +52,7 @@ def _convert_time_series (time_series_data):
 	"""
 	#Differencing
 	differenced_data = [(latter-former) for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
-	percentile_list = [(stats.scoreatpercentile(differenced_data, 100/len(symbol_list)) for x in range(len(symbol_list)))]
+	percentile_list = [stats.scoreatpercentile(differenced_data, 100 * x/len(symbol_list)) for x in range(len(symbol_list))]
 
 	return differenced_data, percentile_list
 
@@ -66,15 +65,16 @@ def _generate_symbol_matrix(differenced_data, percentile_list):
 	symbol_matrix = []
 
 	for i in range(len(differenced_data)):
-		for idx, score1, score2 in enumerate(zip(percentile_list[1:], percentile_list[-1])):
+		for idx, (score1, score2) in enumerate(zip(percentile_list[:-1], percentile_list[1:])):
 			if i + PAA_interval < len(differenced_data):
-				if score1 < mean(differenced_data[i:i+PAA_interval]) < score2 :
+				# print format("score:{} pc:{} score:{}\n".format(score1, mean(differenced_data[i:i+PAA_interval]), score2))
+				if score1 <= mean(differenced_data[i:i+PAA_interval]) < score2:
 					symbol_matrix.append(symbol_list[idx])
 
 	return symbol_matrix
 
 
-def initialize_tracker_population():
+def _initialize_tracker_population():
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
@@ -152,6 +152,8 @@ def _mutate_trackers(tracker_list, mutation_template):
 	for t in tracker_list:
 		for char in mutation_template:
 			new_tracker_list.append(t + char)
+			t.word += char
+			new_tracker_list.append(t)
 	return new_tracker_list
 
 
