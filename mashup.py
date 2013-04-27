@@ -7,4 +7,4 @@ def make_mashup():
 	"""
 	w = wav.Wav("tune0.wav")
 	ts = w.extract_time_series()
-	m = mta.get_motifs(ts)
+	return mta.get_motifs(ts)
