@@ -6,11 +6,14 @@ class Wav:
 	our music characteristic identification module.
 	"""
 
-	def __init__(self, filename):
+	def __init__(self, filename, skip_frames=0):
 		self.fp = wave.open(filename, 'r')
+		self.skip_frames = skip_frames
 
 	def read_frame(self):
 		"""Allow for iteration"""
+		if self.skip_frames:
+			self.fp.readframes(self.skip_frames)
 		return self.fp.readframes(1)
 
 	def get_format(self):
@@ -42,21 +45,25 @@ class Wav:
 
 		return time_series
 
-	def test_output(self, filename):
+	def test_output(self, filename, time_series=None):
 		"""Write time-series data back into wave file for corruption check"""
+		if time_series is None:
+			time_series = self.extract_time_series()
+
 		_, fmt = self.get_format()
-		data = self.extract_time_series()
-		data = map(lambda x: struct.pack(fmt, x), data)
+		data = map(lambda x: struct.pack(fmt, x), time_series)
 
 		out = wave.open(filename, 'w')
 		out.setparams(self.fp.getparams())
 		out.setnchannels(1)
+		out.setframerate(self.fp.getframerate() / self.skip_frames)
 		out.writeframes(''.join(data))
+		out.close()
 
 
 class WavFormatError(Exception):
 	pass
 
 if __name__ == '__main__':
-	w = Wav('songs/i knew you were trouble.wav')
+	w = Wav('songs/i knew you were trouble.wav', skip_frames=32)
 	w.test_output('songs/out.wav')
