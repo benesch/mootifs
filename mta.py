@@ -1,6 +1,6 @@
 import string
 
-import scipy as stats
+from scipy import stats
 import numpy as np
 
 match_threshold = 2
@@ -174,10 +174,10 @@ def _streamline_motifs(motif_list):
 
 	def remove_submotif(submotif, motif):
 
-		for start in motif.starts:
-			for substart in submotif.starts:
+		for start in motif.start:
+			for substart in submotif.start:
 				if start <= substart and substart + len(submotif.word) <= motif.start + len(motif.word):
-					submotif.starts.remove(substart)
+					submotif.start.remove(substart)
 
 		return motif
 
