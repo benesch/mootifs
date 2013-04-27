@@ -7,21 +7,20 @@ match_threshold_r = 0
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
-#PAA_interval = 5
-redun_threshold = 5
+PAA_interval = 5
+redundancy_threshold = 2
 deviation_threshold = 10
 motif_list = []
 
 class tracker:
-	def __init__(self, word, start, match_count):
-	self.word = word
-	self.start = start
-	self.match_count = 0
+	def __init__(self, word):
+		self.word = word
+		self.starts = []
 
 class motif:
 	def __init__(start, end):
-	self.start = start
-	self.end = end
+		self.start = start
+		self.end = end
 
 
 def mean (lst) : return sum(lst) / len (lst)
@@ -59,11 +58,11 @@ def _convert_time_series (time_series_data):
 	# interval = (min_norm - max_norm) / alphabet_size_a
 	# mean_norm = mean (normalized)
 
-	return [(stats.scoreatpercentile(array_time_series, 100/len(symbol_list)) for x in range(len(symbol_list)))]
+	return [(stats.scoreatpercentile(differenced_data, 100/len(symbol_list)) for x in range(len(symbol_list)))]
 
 	# this really should take in normalized_points instead of time_series_data.  The normalized_points
 	# is the differenced, normalized points, rather than the original time_series_data.
-def _generate_symbol_matrix(time_series_data, interval, percentile_list):
+def _generate_symbol_matrix(differenced_data, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
@@ -71,27 +70,29 @@ def _generate_symbol_matrix(time_series_data, interval, percentile_list):
 	
 	symbol_matrix = []
 
-	for i in range(len(time_series_data)):
+	for i in range(len(differenced_data)):
 		for idx, score1, score2 in enumerate(zip(percentile_list[1:], percentile_list[-1])):
-			if i + interval < len(time_series_data):
-				if score1 < mean(time_series_data[i:i+interval]) < score2 :
+			if i + PAA_interval < len(differenced_data):
+				if score1 < mean(differenced_data[i:i+PAA_interval]) < score2 :
 					symbol_matrix.append(symbol_list[idx])
 
 	return symbol_matrix
 
 
-def initialize_tracker_population(): "unique trackers of single symbol length":
+def initialize_tracker_population():
 	"""Initialize all unique trackers of single symbol length, and set their
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
+
 	tracker_list = []
-	for letter in symbol_list
-		tracker_list.append(tracker(letter, 0, 0))
+	
+	for letter in symbol_list:
+		tracker_list.append(tracker(letter))
 
 	return tracker_list
 
 
-def _generate_symbol_stage_matrix(symbol_matrix, redundancy_threshold):
+def _generate_symbol_stage_matrix(symbol_matrix):
 	"""To eliminate trivial matches (that is, consecutive sequences in the
 	symbol matrix that are redundant, since using a sliding window necessarily
 	results in overlap of the same motifs), this function generates a new symbol
@@ -100,22 +101,14 @@ def _generate_symbol_stage_matrix(symbol_matrix, redundancy_threshold):
 	threshold, since long enough consecutive symbol repeats could match actual
 	motifs)."""
 
-#Given a time series T, containing a subsequence C beginning at p and a matching subsequence M beginning at q,
-#M is considered a trivial match to C if either p = q or there does not exist a subsequence M’ beginning at q’
-#such that ED(C,M’)>r, and either q<q’<p or p<q’<q[18] .
-	
+	count = 0	
 
-
-def find_repeats(tracker_list, symbol_matrix):
-	for idx, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
-		if s1 = s2
-
-
-	for idx, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
-		if s1 = s2 or d between 1st subseq to 2nd subseq > redun_threshold:
-			throw out
-		else
-			increase match count of tracker you are on
+	for i, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
+		if s1 == s2 and count < redundancy_threshold - 1:
+			del symbol_matrix[i]
+			count += 1
+		else:
+			count = 0
 
 
 	# for s in symbol_list:
@@ -132,11 +125,11 @@ def _match_trackers(tracker_list, symbol_matrix):
 	if a perfect match exists, the match count of the corresponding tracker is
 	incremented by one."""
 
-	for t in tracker_list
-		for i in range(len(time_series_data)):
-			if i + len(t.word) < len(time_series_data):
+	for t in tracker_list:
+		for i in range(len(symbol_matrix)):
+			if i + len(t.word) < len(symbol_matrix):
 				if t.word == symbol_matrix[i:len(t.word)]:
-					tracker.starts.append(i)
+					t.starts.append(i)
 
 	return tracker_list
 
@@ -146,8 +139,8 @@ def _eliminate_unmatched_trackers(tracker_list, count):
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
 	for t in tracker_list:
-		if t.match_count < count
-			tracker.remove (t)
+		if len(t.starts) < count:
+			tracker_list.remove(t)
 
 	return tracker_list
 
@@ -177,6 +170,7 @@ def _mutate_trackers(tracker_list, mutation_template):
 		tracker_list.remove(tracker)
 
 	return new_tracker_list
+
 
 def _streamline_motifs(motif_list):
 	"""At the end of the MTA, we eliminate motifs that can be found within
