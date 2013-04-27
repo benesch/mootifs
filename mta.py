@@ -170,7 +170,7 @@ def _streamline_motifs(motif_list):
 	larger motifs, but we still want to be able to tease smaller motifs out."""
 
 
-	motif_list = sorted(motif_list, key=lambda motif: len(motif.word))
+	motif_list = sorted(motif_list, key=lambda motif: len(motif.word)) #motif.word doesn't exist (motif.start-motif.end)
 
 	def remove_submotif(submotif, motif):
 
