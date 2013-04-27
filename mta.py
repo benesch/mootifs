@@ -4,10 +4,8 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-length_symbol_s = 0
-symbol_list = string.ascii_lowercase[:20]
-normalized_points = []
-PAA_interval = 20
+symbol_list = map(chr, range(97, 117))
+PAA_interval = 5
 redundancy_threshold = 2
 deviation_threshold = 10
 
@@ -82,7 +80,7 @@ def _initialize_tracker_population():
 	tracker_list = []
 	
 	for letter in symbol_list:
-		tracker_list.append(tracker(letter))
+		tracker_list.append(tracker([letter]))
 
 	return tracker_list
 
@@ -113,11 +111,12 @@ def _match_trackers(tracker_list, symbol_matrix):
 	incremented by one."""
 
 	for t in tracker_list:
-		print t.word
-		print "YAY"
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) < len(symbol_matrix):
-				if t.word == symbol_matrix[i:len(t.word)]:
+				# print t.word
+				# print symbol_matrix[i:i+len(t.word)]
+				# print "\n---------------"
+				if t.word == symbol_matrix[i:i+len(t.word)]:
 					t.starts.append(i)
 
 	return tracker_list
@@ -127,11 +126,14 @@ def _eliminate_unmatched_trackers(tracker_list):
 	"""Only those trackers who have a match count of at least two represent
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
-	for t in tracker_list:
-		if len(t.starts) < match_threshold:
-			tracker_list.remove(t)
 
-	return tracker_list
+	matched_trackers = []
+
+	for t in tracker_list:
+		if len(t.starts) > match_threshold:
+			matched_trackers.append(t)
+
+	return matched_trackers
 
 def _verify_genuine_motifs(tracker_list, deviation_threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
@@ -155,8 +157,7 @@ def _mutate_trackers(tracker_list, mutation_template):
 	new_tracker_list = []
 	for t in tracker_list:
 		for char in mutation_template:
-			t.word += char.word
-			new_tracker_list.append(t)
+			new_tracker_list.append(tracker(t.word + char.word))
 	return new_tracker_list
 
 

@@ -5,9 +5,7 @@ def make_mashup():
 	"""Uses musical qualities determined by the Music module to combine motifs
 	from the various songs provided in an audibly pleasing way.
 	"""
-	# w = wav.Wav("tune0.wav")
-	# ts = w.extract_time_series()
-	ts = [1,2,6,5,4,2,1,2,6,5,4,2,1,2]
+	w = wav.Wav("tune0.wav")
+	ts = w.extract_time_series()
+	# ts = [1,2,6,5,4,2,1,2,6,5,4,2,1,2]
 	return mta.get_motifs(ts)
-
-make_mashup()
