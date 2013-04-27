@@ -57,27 +57,11 @@ def _convert_time_series (time_series_data):
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-#	stdev, lst_len = 0, len(differences)
-
 	#Differencing
 	differenced_data = [(latter-former) for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
 	percentile_list = [(stats.scoreatpercentile(differenced_data, 100/len(symbol_list)) for x in range(len(symbol_list)))]
-	 #mean_difs = mean (lst)
-	 	#for elt in Differences:
-	 		#stdev = stdev + (elt - mean_difs)**2
-	 		#stdev = sqrt(stdev / float(lst_len-1))
-	#Normalization
-	#normalized_points = list ((x - mean_difs) / stdev) for x in Differences)
-
-	# #Symbolization
-	# min_norm, max_norm = min (normalized), max (normalized)
-	# interval = (min_norm - max_norm) / alphabet_size_a
-	# mean_norm = mean (normalized)
 
 	return differenced_data, percentile_list
-
-	# this really should take in normalized_points instead of time_series_data.  The normalized_points
-	# is the differenced, normalized points, rather than the original time_series_data.
 
 def _generate_symbol_matrix(differenced_data, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
@@ -126,16 +110,6 @@ def _generate_symbol_stage_matrix(symbol_matrix):
 			count += 1
 		else:
 			count = 0
-
-
-	# for s in symbol_list:
-	# 	for i in range(len(symbol_matrix)-threshold+1)
-	# 		for j in range(threshold):
-	# 			if (symbol_matrix[i+j] != s):
-	# 				break
-	# 		else:
-	# 			return 
-
 
 def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
