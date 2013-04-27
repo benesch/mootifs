@@ -32,10 +32,10 @@ def get_motifs(time_series_data):
 	motif_list = []
 
 	for i in range(len(symbol_matrix)/match_threshold):
-		_match_trackers(tracker_list, symbol_matrix)
-		_eliminate_unmatched_trackers(tracker_list)
-		motif_list.append(_streamline_motifs(tracker_list))
-		_mutate_trackers(tracker_list, mutation_template)
+		tracker_list = _match_trackers(tracker_list, symbol_matrix)
+		tracker_list = _eliminate_unmatched_trackers(matched)
+		motif_list += tracker_list
+		tracker_list = _mutate_trackers(tracker_list, mutation_template)
 
 	return motif_list
 
@@ -105,6 +105,8 @@ def _generate_symbol_stage_matrix(symbol_matrix):
 		else:
 			count = 0
 
+	return symbol_matrix
+
 def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
 	if a perfect match exists, the match count of the corresponding tracker is
@@ -168,10 +170,10 @@ def _streamline_motifs(motif_list):
 
 	def remove_submotif(submotif, motif):
 
-		for start in motif.start:
-			for substart in submotif.start:
-				if start <= substart and substart + len(submotif.word) <= motif.start + len(motif.word):
-					submotif.start.remove(substart)
+		for start in motif.starts:
+			for substart in submotif.starts:
+				if start <= substart and substart + len(submotif.word) <= start + len(motif.word):
+					submotif.starts.remove(substart)
 
 		return motif
 
