@@ -1,6 +1,6 @@
 import string
 
-import scipy as stats
+from scipy import stats
 import numpy as np
 
 match_threshold = 2
