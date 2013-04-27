@@ -33,7 +33,7 @@ def get_motifs(time_series_data):
 
 	for i in range(len(symbol_matrix)/match_threshold):
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
-		tracker_list = _eliminate_unmatched_trackers(matched)
+		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
 
@@ -52,7 +52,7 @@ def _convert_time_series (time_series_data):
 	"""
 	#Differencing
 	differenced_data = [(latter-former) for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
-	percentile_list = [stats.scoreatpercentile(differenced_data, 100 * x/len(symbol_list)) for x in range(len(symbol_list))]
+	percentile_list = [stats.scoreatpercentile(differenced_data, 100 * x/len(symbol_list)) for x in range(len(symbol_list)+1)]
 
 	return differenced_data, percentile_list
 
