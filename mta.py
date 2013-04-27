@@ -7,7 +7,7 @@ match_threshold_r = 0
 length_symbol_s = 0
 symbol_list = string.ascii_lowercase[:20]
 normalized_points = []
-#PAA_interval = 5
+PAA_interval = 5
 redun_threshold = 5
 deviation_threshold = 10
 motif_list = []
@@ -63,7 +63,7 @@ def _convert_time_series (time_series_data):
 
 	# this really should take in normalized_points instead of time_series_data.  The normalized_points
 	# is the differenced, normalized points, rather than the original time_series_data.
-def _generate_symbol_matrix(time_series_data, interval, percentile_list):
+def _generate_symbol_matrix(time_series_data, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
 	symbolic representations of the data (since motifs clearly do not have
 	to start at any specified point), and store these in a list to later
