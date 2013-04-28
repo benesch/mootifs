@@ -4,7 +4,7 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 117))
+symbol_list = map(chr, range(97, 100))
 PAA_interval = 5
 redundancy_threshold = 2
 deviation_threshold = 10
@@ -116,9 +116,9 @@ def _match_trackers(tracker_list, symbol_matrix):
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) < len(symbol_matrix):
-				# print t.word
-				# print symbol_matrix[i:i+len(t.word)]
-				# print "\n---------------"
+				print t.word
+				print symbol_matrix[i:i+len(t.word)]
+				print "---------------"
 				if t.word == symbol_matrix[i:i+len(t.word)]:
 					t.starts.append(i)
 
