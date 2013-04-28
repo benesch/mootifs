@@ -16,23 +16,20 @@ source: (https://github.com/echonest/pyechonest/blob/master/examples/tempo.py)
 class Wav:
 
 def get_bpm(wav):
+
 	
 
 
 
 
 
-def extract_instrumentals (time_series):
-
-# 	def get_format(self):
-# 		bytes = self.fp.getsampwidth()
-# 		fmts = { 1: 'B', 2: 'h', 4: 'i' }
-# 		try:
-# 			fmt = '<' + fmts[bytes]
-# 		except ValueError:
-# 			raise WavFormatError('unrecognized sample width')
-# 		return (bytes, fmt)
-
+def extract_instrumentals():
+	chan_out = []
+	w = wav.Wav("tune0.wav")
+	chan1, chan2 = w.extract_time_series() #returns the 2 treams
+	for data1, data2 in chan1, chan2
+		chan_out.append((data1-data2)/2)
+	return chan_out
 
 # 	def test_output(self, filename):
 # 		_, fmt = self.get_format()
