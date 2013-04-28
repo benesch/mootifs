@@ -1,6 +1,6 @@
 import struct
 import wave
-
+scipy.io.wavfile.read(somefile)
 class Wav:
 	"""Reads in wave files and stores them in a Wav class optimized for use with
 	our music characteristic identification module (see next)."""

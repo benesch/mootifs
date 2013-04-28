@@ -6,7 +6,7 @@ def make_mashup():
 	from the various songs provided in an audibly pleasing way.
 	"""
 
-	w = wav.Wav("Korg-DS-8-Rotary-Organ-C6.wav")
+	w = wav.Wav("tune0.wav")
 	ts = w.extract_time_series()
-	#ts = [1,2,6,5,4,2,1,2,6,5,4,2,1,2]
+	# ts = [1,2,6,5,4,2,1,2,6,5,4,2,1,2]
 	return mta.get_motifs(ts)
