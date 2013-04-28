@@ -2,22 +2,33 @@ import sys
 from pyechonest import song
 import wave
 
-def get_tempo(artist, title):
-	"""Gets the BPM from a audio waveform
-	"""
-    "gets the tempo for a song"
-    results = song.search(artist=artist, title=title, results=1, buckets=['audio_summary'])
-    if len(results) > 0:
-        return results[0].audio_summary['tempo']
-    else:
-        return None
-source: (https://github.com/echonest/pyechonest/blob/master/examples/tempo.py)
-
-class Wav:
-
 def get_bpm(wav):
 
-	
+	sound_e_buffer = buffer()
+	avg_energy = 0
+	variance = 0
+	beat_list = [] #just want the length of this list, so we can do length/time to get bpm
+	C = 0
+	w = wav.Wav("tune0.wav")
+	chan1, chan2 = w.extract_time_series()
+	for idx, data1, data2 in enumerate(zip(chan1,chan2)):
+		if idx % 1024 == 0:
+			sound_e_buffer_add_to_buffer(0)
+		else:
+			sound_e_buffer[-1] = sound_e_buffer[-1] + (data1)**2 + (data2)**2
+		if idx % 44032 == 0:
+			for i in range(43):
+				avg_energy = avg_energy + (1/43) * (sound_e_buffer[i])**2			
+			for i in sound_e_buffer:
+				variance = variance + (sound_e_buffer[i]-avg_energy)**2
+		constant = (-0.0025714*variance) + 1.5142857
+			shift sound_e_buffer 1 index right to make room for new e value and flush oldest
+			add new energy value in at E[0]
+			if E[0] > constant*avg_energy:
+				beat_list.append(0)
+				avg_energy = 0
+				variance = 0
+
 
 
 
