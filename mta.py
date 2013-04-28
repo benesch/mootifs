@@ -4,7 +4,7 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 117))
+symbol_list = map(chr, range(97, 100))
 PAA_interval = 5
 redundancy_threshold = 2
 deviation_threshold = 10
@@ -38,7 +38,7 @@ def get_motifs(time_series_data):
 	return motif_list
 
 
-def _convert_time_series (time_series_data):
+def _convert_time_series(time_series):
 	"""Establishes symbolic library and normalizes the time series data, then
 	represents the data (represented as a list of floats) with that library
 	(i.e., each data point is converted into a symbol to be used in the
@@ -48,11 +48,14 @@ def _convert_time_series (time_series_data):
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-	#Differencing
-	differenced_data = [(latter-former) for former, latter in zip(time_series_data[:-1], time_series_data[1:])]
-	percentile_list = [stats.scoreatpercentile(differenced_data, 100 * x/len(symbol_list)) for x in range(len(symbol_list)+1)]
+	paired = zip(time_series[:-1], time_series[1:])
+	differential = [(latter - former) for former, latter in paired]
 
-	return differenced_data, percentile_list
+	ntrackers = len(symbol_list)
+	percentiles = [x * (100 / ntrackers) for x in range(ntrackers + 1)]
+	zscores = [stats.scoreatpercentile(differential, p) for p in percentiles]
+
+	return differential, zscores
 
 def _generate_symbol_matrix(differenced_data, percentile_list):
 	"""Use a sliding window of specified length to calculate all possible
@@ -113,9 +116,9 @@ def _match_trackers(tracker_list, symbol_matrix):
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) < len(symbol_matrix):
-				# print t.word
-				# print symbol_matrix[i:i+len(t.word)]
-				# print "\n---------------"
+				print t.word
+				print symbol_matrix[i:i+len(t.word)]
+				print "---------------"
 				if t.word == symbol_matrix[i:i+len(t.word)]:
 					t.starts.append(i)
 
