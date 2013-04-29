@@ -39,10 +39,3 @@ def extract_instrumentals():
 	for data1, data2 in chan1, chan2
 		chan_out.append((data1-data2)/2)
 	return chan_out
-
-
-# def get_key(wav):
-# 	"""Gets the key of an audio waveform
-# 	"""
-# 	pass
-
