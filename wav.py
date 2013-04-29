@@ -1,3 +1,4 @@
+from scipy import io
 from scipy import signal
 import struct
 import wave
@@ -63,6 +64,9 @@ class Wav:
 		out.setframerate(self.fp.getframerate() / self.skip_frames)
 		out.writeframes(''.join(data))
 		out.close()
+
+	def write(filename, rate, data):
+
 
 
 class WavFormatError(Exception):
