@@ -4,7 +4,7 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 100))
+symbol_list = map(chr, range(97, 105))
 PAA_interval = 5
 redundancy_threshold = 2
 deviation_threshold = 10
@@ -24,6 +24,7 @@ def get_motifs(time_series_data):
 	differenced_data, percentile_list = _convert_time_series(time_series_data)
 
 	symbol_matrix = _generate_symbol_matrix(differenced_data, percentile_list)
+	symbol_matrix = _generate_symbol_stage_matrix(symbol_matrix)
 
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
@@ -35,6 +36,7 @@ def get_motifs(time_series_data):
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
 
+	motif_list = _streamline_motifs(motif_list)
 	return motif_list
 
 
@@ -69,9 +71,9 @@ def _generate_symbol_matrix(differenced_data, percentile_list):
 		for idx, (score1, score2) in enumerate(zip(percentile_list[:-1], percentile_list[1:])):
 			if i + PAA_interval < len(differenced_data):
 				# print format("score:{} pc:{} score:{}\n".format(score1, mean(differenced_data[i:i+PAA_interval]), score2))
-				if score1 <= mean(differenced_data[i:i+PAA_interval]) < score2:
+				if score1 <= mean(differenced_data[i:i+PAA_interval]) <= score2:
 					symbol_matrix.append(symbol_list[idx])
-
+					break
 	return symbol_matrix
 
 
@@ -99,7 +101,7 @@ def _generate_symbol_stage_matrix(symbol_matrix):
 
 	count = 0	
 
-	for i, s1, s2 in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
+	for i, (s1, s2) in enumerate(zip(symbol_list[:-1], symbol_list[1:])):
 		if s1 == s2 and count < redundancy_threshold - 1:
 			del symbol_matrix[i]
 			count += 1
@@ -133,7 +135,7 @@ def _eliminate_unmatched_trackers(tracker_list):
 	matched_trackers = []
 
 	for t in tracker_list:
-		if len(t.starts) > match_threshold:
+		if len(t.starts) >= match_threshold:
 			matched_trackers.append(t)
 
 	return matched_trackers
