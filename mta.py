@@ -162,6 +162,7 @@ def _mutate_trackers(tracker_list, mutation_template):
 	new_tracker_list = []
 	for t in tracker_list:
 		for char in mutation_template:
+
 			new_tracker_list.append(tracker(t.word + char.word))
 	return new_tracker_list
 
@@ -173,7 +174,7 @@ def _streamline_motifs(motif_list):
 	larger motifs, but we still want to be able to tease smaller motifs out."""
 
 
-	motif_list = sorted(motif_list, key=lambda motif: len(motif.word))
+	motif_list = sorted(motif_list, key=lambda motif: len(motif.word)) #motif.word doesn't exist (motif.start-motif.end)
 
 	def remove_submotif(submotif, motif):
 

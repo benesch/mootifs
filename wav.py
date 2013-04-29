@@ -1,6 +1,7 @@
+from scipy import signal
 import struct
 import wave
-
+scipy.io.wavfile.read(somefile)
 class Wav:
 	"""Reads in wave files and stores them in a Wav class optimized for use with
 	our music characteristic identification module.
@@ -9,6 +10,7 @@ class Wav:
 	def __init__(self, filename, skip_frames=0):
 		self.fp = wave.open(filename, 'r')
 		self.skip_frames = skip_frames
+		self.time_series = None
 
 	def read_frame(self):
 		"""Allow for iteration"""
@@ -36,14 +38,15 @@ class Wav:
 		For simplicity, this function extracts data from only the first channel.
 		Returns a list of integer amplitudes.
 		"""
-		bytes, fmt = self.get_format()
+		if self.time_series is None:
+			bytes, fmt = self.get_format()
 
-		self.fp.rewind()
-		time_series = []
-		for frame in iter(self.read_frame, b''):
-			time_series.append(struct.unpack(fmt, frame[:bytes])[0])
+			self.fp.rewind()
+			self.time_series = []
+			for frame in iter(self.read_frame, b''):
+				self.time_series.append(struct.unpack(fmt, frame[:bytes])[0])
 
-		return time_series
+		return self.time_series
 
 	def test_output(self, filename, time_series=None):
 		"""Write time-series data back into wave file for corruption check"""
@@ -52,6 +55,7 @@ class Wav:
 
 		_, fmt = self.get_format()
 		data = map(lambda x: struct.pack(fmt, x), time_series)
+		framerate = self.skip_frames
 
 		out = wave.open(filename, 'w')
 		out.setparams(self.fp.getparams())
