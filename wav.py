@@ -1,7 +1,8 @@
+from scipy import io
 from scipy import signal
 import struct
 import wave
-scipy.io.wavfile.read(somefile)
+
 class Wav:
 	"""Reads in wave files and stores them in a Wav class optimized for use with
 	our music characteristic identification module.
@@ -63,6 +64,9 @@ class Wav:
 		out.setframerate(self.fp.getframerate() / self.skip_frames)
 		out.writeframes(''.join(data))
 		out.close()
+
+	def write(filename, rate, data):
+
 
 
 class WavFormatError(Exception):
