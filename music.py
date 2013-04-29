@@ -3,6 +3,7 @@ from pyechonest import song
 import wave
 
 def get_bpm(wav):
+	http://archive.gamedev.net/archive/reference/programming/features/beatdetection/index.html
 
 	sound_e_buffer = buffer()
 	avg_energy = 0
