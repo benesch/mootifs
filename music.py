@@ -27,16 +27,10 @@ while len(chan1) > 1024:
 		avg_energy = _compute_average_energy(inst_energy_buffer)
 		variance = 0
 		variance += (inst_energy_buffer[i]-avg_energy)**2
-		if (buffer_[21] > (constant1*variance + constant2) * avg_energy):
+		if (inst_energy_buffer[21] > (constant1*variance + constant2) * avg_energy):
 			beats++
 			inst_energy_buffer.get()
 			inst_energy_buffer.put(_compute_instant_energy())
-
-		# if idx % 44032 == 0:
-		# 	for i in range(43):
-		# 		avg_energy = avg_energy + (1/43) * (sound_e_buffer[i])**2			
-
-		# 	add new energy value in at E[0]
 
 def extract_instrumentals():
 	chan_out = []
