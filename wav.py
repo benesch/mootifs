@@ -65,10 +65,6 @@ class Wav:
 		out.writeframes(''.join(data))
 		out.close()
 
-	def write(filename, rate, data):
-
-
-
 class WavFormatError(Exception):
 	pass
 
