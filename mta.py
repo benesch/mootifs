@@ -1,5 +1,4 @@
 import string
-
 from scipy import stats
 import numpy as np
 
@@ -24,8 +23,7 @@ def get_motifs(time_series_data):
 	differenced_data, percentile_list = _convert_time_series(time_series_data)
 
 	symbol_matrix = _generate_symbol_matrix(differenced_data, percentile_list)
-	symbol_matrix = _generate_symbol_stage_matrix(symbol_matrix)
-
+	symbol_matrix = _generate_symbol_stage_matrix(symbol_matrix)`	aq
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
 	motif_list = []
