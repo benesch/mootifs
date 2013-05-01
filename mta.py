@@ -36,7 +36,8 @@ def get_motifs(time_series_data):
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
 
-	motif_list = [x for x in (_streamline_motifs(motif_list)) if x != []]
+	motif_list = _streamline_motifs(motif_list)
+
 	return motif_list
 
 
@@ -100,19 +101,21 @@ def _generate_symbol_stage_matrix(symbol_matrix):
 	motifs)."""
 
 	count = 0	
-#delete changes indices
-
 	num_deleted = 0
+	new_symbol_matrix = []
+
 	for i, (s1, s2) in enumerate(zip(symbol_matrix[:-1], symbol_matrix[1:])):
-		if s1 == s2 and count < redundancy_threshold - 1:
-			del symbol_matrix[i-num_deleted]
+		if s1 == s2:
 			count += 1
-			num_deleted += 1
-			print "woo"
+			if count < redundancy_threshold:
+				new_symbol_matrix.append(s1)
+			else:
+				num_deleted += 1			
+				count = 0
 		else:
 			count = 0
-
-	return symbol_matrix
+			new_symbol_matrix.append(s1)
+	return new_symbol_matrix
 
 def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
@@ -188,8 +191,8 @@ def _streamline_motifs(motif_list):
 
 		return motif
 
-	for idx, submotif in enumerate(motif_list):
+	for idx, submotif in enumerate(motif_list[:-1]):
 		for motif in motif_list[idx + 1:]:
 			motif = remove_submotif(submotif, motif)
 
-	return motif_list
+	return filter(lambda t: len(t.starts) > 1, motif_list)
