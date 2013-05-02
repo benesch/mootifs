@@ -30,11 +30,11 @@ def get_motifs(time_series_data):
 	max_tracker_len = len(symbol_matrix)/match_threshold
 
 	for i in range(max_tracker_len):
+		symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
-		symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
 
 	motif_list = _streamline_motifs(motif_list)
 
@@ -53,12 +53,19 @@ def _convert_time_series(time_series):
 	"""
 	paired = zip(time_series[:-1], time_series[1:])
 	differential = [(latter - former) for former, latter in paired]
+	
+	normal = stats.norm.fit(differential)
+
+	diff_sig = stats.tstd(differential)
+	diff_mean = stats.tmean(differential)
+
+	norm_differential = [(diff - diff_mean)/diff_sig for diff in differential]
 
 	ntrackers = len(symbol_list)
 	percentiles = [x * (100 / ntrackers) for x in range(ntrackers + 1)]
-	zscores = [stats.scoreatpercentile(differential, p) for p in percentiles]
+	zscores = [stats.scoreatpercentile(norm_differential, p) for p in percentiles]
 
-	return differential, zscores
+	return norm_differential, zscores
 
 def _generate_symbol_matrix(differential, zscores):
 	"""Use a sliding window of specified length to calculate all possible
@@ -74,7 +81,7 @@ def _generate_symbol_matrix(differential, zscores):
 				# print format("score:{} pc:{} score:{}\n".format(score1, mean(differenced_data[i:i+PAA_interval]), score2))
 				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
 					symbol_matrix.append(symbol_list[idx])
-					break
+					#break
 	return symbol_matrix
 
 

@@ -1,2 +1,4 @@
 .pyc
 songs/
+.DS_STORE
+.noseids

@@ -8,15 +8,12 @@ class Wav:
 	our music characteristic identification module.
 	"""
 
-	def __init__(self, filename, skip_frames=0):
+	def __init__(self, filename):
 		self.fp = wave.open(filename, 'r')
-		self.skip_frames = skip_frames
 		self.time_series = None
 
 	def read_frame(self):
 		"""Allow for iteration"""
-		if self.skip_frames:
-			self.fp.readframes(self.skip_frames)
 		return self.fp.readframes(1)
 
 	def get_format(self):
@@ -25,13 +22,14 @@ class Wav:
 		bytes - the width of each channel's sample in bytes
 		fmt - a struct-compatible format string specifying integer length
 		"""
+		nchannels = self.fp.getnchannels()
 		bytes = self.fp.getsampwidth()
 		fmts = { 1: 'B', 2: 'h', 4: 'i' }
 		try:
-			fmt = '<' + fmts[bytes]
+			fmt = '<' + (fmts[bytes] * nchannels)
 		except ValueError:
 			raise WavFormatError('unrecognized sample width')
-		return (bytes, fmt)
+		return fmt
 
 	def extract_time_series(self):
 		"""Convert wave file into time series data.
@@ -40,34 +38,35 @@ class Wav:
 		Returns a list of integer amplitudes.
 		"""
 		if self.time_series is None:
-			bytes, fmt = self.get_format()
-
 			self.fp.rewind()
-			self.time_series = []
-			for frame in iter(self.read_frame, b''):
-				self.time_series.append(struct.unpack(fmt, frame[:bytes])[0])
+			fmt = self.get_format()
+			it = iter(self.read_frame, b'')
+			self.time_series = [struct.unpack(fmt, frame) for frame in it]
 
 		return self.time_series
 
-	def test_output(self, filename, time_series=None):
-		"""Write time-series data back into wave file for corruption check"""
-		if time_series is None:
-			time_series = self.extract_time_series()
+	def resample(self, num_samples):
+		channels = zip(*self.extract_time_series())
+		resampled = [signal.resample(c, num_samples).tolist() for c in channels]
+		return zip(*resampled)
 
-		_, fmt = self.get_format()
-		data = map(lambda x: struct.pack(fmt, x), time_series)
-		framerate = self.skip_frames
+	def test_output(self, filename, num_samples=None):
+		"""Write time-series data back into wave file for corruption check"""
+		if num_samples is None:
+			framerate = self.fp.getframerate()
+			time_series = self.extract_time_series()
+		else:
+			time_series = self.resample(num_samples)
+			framerate = (self.fp.getframerate() * num_samples) / self.fp.getnframes()
+
+		fmt = self.get_format()
+		data = [struct.pack(fmt, *x) for x in time_series]
 
 		out = wave.open(filename, 'w')
 		out.setparams(self.fp.getparams())
-		out.setnchannels(1)
-		out.setframerate(self.fp.getframerate() / self.skip_frames)
+		out.setframerate(framerate)
 		out.writeframes(''.join(data))
 		out.close()
 
 class WavFormatError(Exception):
 	pass
-
-if __name__ == '__main__':
-	w = Wav('songs/i knew you were trouble.wav', skip_frames=32)
-	w.test_output('songs/out.wav')
