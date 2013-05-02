@@ -45,16 +45,26 @@ class Wav:
 
 		return self.time_series
 
-	def test_output(self, filename, time_series=None):
+	def resample(self, num_samples):
+		channels = zip(*self.extract_time_series())
+		resampled = [signal.resample(c, num_samples).tolist() for c in channels]
+		return zip(*resampled)
+
+	def test_output(self, filename, num_samples=None):
 		"""Write time-series data back into wave file for corruption check"""
-		if time_series is None:
+		if num_samples is None:
+			framerate = self.fp.getframerate()
 			time_series = self.extract_time_series()
+		else:
+			time_series = self.resample(num_samples)
+			framerate = (self.fp.getframerate() * num_samples) / self.fp.getnframes()
 
 		fmt = self.get_format()
 		data = [struct.pack(fmt, *x) for x in time_series]
 
 		out = wave.open(filename, 'w')
 		out.setparams(self.fp.getparams())
+		out.setframerate(framerate)
 		out.writeframes(''.join(data))
 		out.close()
 
