@@ -27,14 +27,15 @@ def get_motifs(time_series_data):
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
 	motif_list = []
+	max_tracker_len = len(symbol_matrix)/match_threshold
 
-	for i in range(len(symbol_matrix)/match_threshold):
+	for i in range(max_tracker_len):
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
-		symbol_matrix = _generate_symbol_stage_matrix(i+1, symbol_matrix) #shouldn't this happen every time trackers get mutated? moved from outside for loop
-#i is not quite right
+		symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
+
 	motif_list = _streamline_motifs(motif_list)
 
 	return motif_list
@@ -106,14 +107,14 @@ def _generate_symbol_stage_matrix(generation, symbol_matrix):
 	for i, (s1, s2) in enumerate(zip(symbol_matrix[:-1], symbol_matrix[1:])):
 		if s1 == s2:
 			count += 1
-			if count < generation: #redundancy threshold should change based upon the size of the current sliding window
+			if count < generation - 1:
 				new_symbol_matrix.append(s1)
 			else:
-				num_deleted += 1			
-				count = 0
+				num_deleted += 1
 		else:
 			count = 0
 			new_symbol_matrix.append(s1)
+			new_symbol_matrix.append(s2)
 	return new_symbol_matrix
 
 def _match_trackers(tracker_list, symbol_matrix):
@@ -123,7 +124,7 @@ def _match_trackers(tracker_list, symbol_matrix):
 
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
-			if i + len(t.word) <= len(symbol_matrix):  #<=?
+			if i + len(t.word) <= len(symbol_matrix):
 				print t.word
 				print symbol_matrix[i:i+len(t.word)]
 				print "---------------"
@@ -165,11 +166,6 @@ def _mutate_trackers(tracker_list, mutation_template):
 	mutation template. These new, longer trackers will then be used to find
 	longer motifs."""
 
-	# new_tracker_list = []
-	# for t in tracker_list:
-	# 	for char in mutation_template:
-	# 		new_tracker_list.append(tracker(t.word + char.word))
-	# return new_tracker_list
 	new_tracker_list = []
 	for t in tracker_list:
 		for char in mutation_template:
@@ -185,7 +181,7 @@ def _streamline_motifs(motif_list):
 	larger motifs, but we still want to be able to tease smaller motifs out."""
 
 
-	motif_list = sorted(motif_list, key=lambda motif: len(motif.word)) #motif.word doesn't exist (motif.start-motif.end)
+	# motif_list = sorted(motif_list, key=lambda motif: len(motif.word)) - should already be sorted
 
 	def remove_submotif(submotif, motif):
 
@@ -200,4 +196,4 @@ def _streamline_motifs(motif_list):
 		for motif in motif_list[idx + 1:]:
 			motif = remove_submotif(submotif, motif)
 
-	return filter(lambda t: len(t.starts) > 1, motif_list)
+	return filter(lambda t: len(t.starts) >= match_threshold, motif_list)
