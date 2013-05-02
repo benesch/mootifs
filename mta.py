@@ -3,11 +3,8 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 105))
+symbol_list = map(chr, range(97, 117))
 PAA_interval = 5
-redundancy_threshold = 2
-deviation_threshold = 10
-
 
 class tracker:
 	def __init__(self, word):
@@ -20,26 +17,18 @@ def get_motifs(time_series_data):
 	"""Runs MTA on time-series data represented as a list of floats.
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
-
 	differential, zscores = _convert_time_series(time_series_data)
-
 	symbol_matrix = _generate_symbol_matrix(differential, zscores)
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
 	motif_list = []
 	max_tracker_len = len(symbol_matrix)/match_threshold
-
 	for i in range(max_tracker_len):
-		symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
-
-	motif_list = _streamline_motifs(motif_list)
-
 	return motif_list
-
 
 def _convert_time_series(time_series):
 	"""Establishes symbolic library and normalizes the time series data, then
@@ -53,18 +42,12 @@ def _convert_time_series(time_series):
 	"""
 	paired = zip(time_series[:-1], time_series[1:])
 	differential = [(latter - former) for former, latter in paired]
-	
-	normal = stats.norm.fit(differential)
-
 	diff_sig = stats.tstd(differential)
 	diff_mean = stats.tmean(differential)
-
 	norm_differential = [(diff - diff_mean)/diff_sig for diff in differential]
-
 	ntrackers = len(symbol_list)
 	percentiles = [x * (100 / ntrackers) for x in range(ntrackers + 1)]
 	zscores = [stats.scoreatpercentile(norm_differential, p) for p in percentiles]
-
 	return norm_differential, zscores
 
 def _generate_symbol_matrix(differential, zscores):
@@ -74,16 +57,13 @@ def _generate_symbol_matrix(differential, zscores):
 	initialize our trackers.  Should get passed in diffferenced data."""
 	
 	symbol_matrix = []
-
 	for i in range(len(differential)):
 		for idx, (score1, score2) in enumerate(zip(zscores[:-1], zscores[1:])):
 			if i + PAA_interval < len(differential):
-				# print format("score:{} pc:{} score:{}\n".format(score1, mean(differenced_data[i:i+PAA_interval]), score2))
 				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
 					symbol_matrix.append(symbol_list[idx])
-					#break
+					break
 	return symbol_matrix
-
 
 def _initialize_tracker_population():
 	"""Initialize all unique trackers of single symbol length, and set their
@@ -91,37 +71,9 @@ def _initialize_tracker_population():
 	in the data set."""
 
 	tracker_list = []
-	
 	for letter in symbol_list:
 		tracker_list.append(tracker([letter]))
-
 	return tracker_list
-
-
-def _generate_symbol_stage_matrix(generation, symbol_matrix):
-	"""To eliminate trivial matches (that is, consecutive sequences in the
-	symbol matrix that are redundant, since using a sliding window necessarily
-	results in overlap of the same motifs), this function generates a new symbol
-	stage matrix each time the trackers are mutated, only including those
-	symbols that are different than the one included before (to a certain error
-	threshold, since long enough consecutive symbol repeats could match actual
-	motifs)."""
-
-	count = 0	
-	num_deleted = 0
-	new_symbol_matrix = []
-
-	for i, (s1, s2) in enumerate(zip(symbol_matrix[:-1], symbol_matrix[1:])):
-		if s1 == s2:
-			count += 1
-			if count < generation - 1:
-				new_symbol_matrix.append(s1)
-			else:
-				num_deleted += 1
-		else:
-			count = 0
-			new_symbol_matrix.append(s1)
-	return new_symbol_matrix
 
 def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
@@ -136,9 +88,7 @@ def _match_trackers(tracker_list, symbol_matrix):
 				print "---------------"
 				if t.word == symbol_matrix[i:i+len(t.word)]:
 					t.starts.append(i)
-
 	return tracker_list
-
 
 def _eliminate_unmatched_trackers(tracker_list):
 	"""Only those trackers who have a match count of at least two represent
@@ -150,19 +100,7 @@ def _eliminate_unmatched_trackers(tracker_list):
 	for t in tracker_list:
 		if len(t.starts) >= match_threshold:
 			matched_trackers.append(t)
-
 	return matched_trackers
-
-def _verify_genuine_motifs(tracker_list, deviation_threshold):
-	"""Examines purported motif sequences and calculates the Euclidean distance
-	between them; if that distance is greater than a given threshold (which
-	dynamically increases based on the length of the motif involved), these
-	motifs (and thus their corresponding trackers) are discarded. Those that are
-	successful are stored in a motif list."""
-	pass
-
-	# may not be necessary in phase I of implementation
-
 
 def _mutate_trackers(tracker_list, mutation_template):
 	"""The tracker list from the first generation represents all possible
@@ -177,29 +115,3 @@ def _mutate_trackers(tracker_list, mutation_template):
 		for char in mutation_template:
 			new_tracker_list.append(tracker(t.word + char.word))
 	return new_tracker_list
-
-
-
-def _streamline_motifs(motif_list):
-	"""At the end of the MTA, we eliminate motifs that can be found within
-	larger motifs to streamline the process. We might modify this step, however,
-	since musical elements like the beat might be completely encapsulated within
-	larger motifs, but we still want to be able to tease smaller motifs out."""
-
-
-	# motif_list = sorted(motif_list, key=lambda motif: len(motif.word)) - should already be sorted
-
-	def remove_submotif(submotif, motif):
-
-		for start in motif.starts:
-			for substart in submotif.starts:
-				if start <= substart and substart + len(submotif.word) <= start + len(motif.word):
-					submotif.starts.remove(substart)
-
-		return motif
-
-	for idx, submotif in enumerate(motif_list[:-1]):
-		for motif in motif_list[idx + 1:]:
-			motif = remove_submotif(submotif, motif)
-
-	return filter(lambda t: len(t.starts) >= match_threshold, motif_list)

@@ -31,18 +31,18 @@ def make_mashup():
 # 	def remove_whitespace():
 
 
-def construct_mashup(wavs, segments):
-	wavs = 
+# def construct_mashup(wavs, segments):
+# 	wavs = 
 
 
-SEC = 441000
+# SEC = 441000
 
-wav1 = wav.Wav('songs/for the first time.wav')
-wav2 = wav.Wav('songs/i knew you were trouble.wav')
-wav3 = wav.Wav('songs/all i need.wav')
-wavs = [wav1, wav2, wav3]
+# wav1 = wav.Wav('songs/for the first time.wav')
+# wav2 = wav.Wav('songs/i knew you were trouble.wav')
+# wav3 = wav.Wav('songs/all i need.wav')
+# wavs = [wav1, wav2, wav3]
 
-segments = [
-	([(0, 0),    (1, 1000)], 10 * SEC)
-	([(0, 5000), (1, 9000)], 20 * SEC)
-]
+# segments = [
+# 	([(0, 0),    (1, 1000)], 10 * SEC)
+# 	([(0, 5000), (1, 9000)], 20 * SEC)
+# ]
