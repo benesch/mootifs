@@ -55,6 +55,8 @@ wavs = [wav1, wav2, wav3]
 
 SEC = 44100
 
+#first tuple says wavefile index, startframe
+#outer tuple is the list of tracks and the duration of each
 segments = [
 	([(1, 0)], 14 * SEC),
 	([(2, 0)], int(16.47 * SEC)),
