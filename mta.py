@@ -114,7 +114,6 @@ def _generate_symbol_stage_matrix(generation, symbol_matrix):
 		else:
 			count = 0
 			new_symbol_matrix.append(s1)
-			new_symbol_matrix.append(s2)
 	return new_symbol_matrix
 
 def _match_trackers(tracker_list, symbol_matrix):

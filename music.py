@@ -1,7 +1,5 @@
 import sys
-from pyechonest import song
 import wave
-from collections import deque
 import Queue
 
 def get_bpm(wav):
