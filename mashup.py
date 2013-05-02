@@ -34,5 +34,3 @@ segments = [
 	([(0, 0),    (1, 1000)], 10 * SEC)
 	([(0, 5000), (1, 9000)], 20 * SEC)
 ]
-
-construct_mashup(wavs, )
