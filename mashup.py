@@ -1,5 +1,7 @@
 import mta
+import struct
 import wav
+import wave
 
 
 def make_mashup():
@@ -19,18 +21,48 @@ def make_mashup():
 	# from song 1, add in everything up until the second longest motif.  Then, add in the duration of the second longest motif.  Add in the second longest motif
 	# of song 2.  Add in the longest motif from song 2 (chorus).  Then do some sort of mix somehow.
 
-# def construct_mashup(wavs, segments):
-# 	wavs = 
+def tuple_sum(*args):
+	return tuple(sum(t) for t in zip(*args))
 
+def tuple_div(tup, divisor):
+	return tuple(x / divisor for x in tup)
 
-# SEC = 441000
+def construct_mashup(wavs, segments):
+	samples = []
+	for tracks, duration in segments:
+		ntracks = len(tracks)
+		adjusted_tracks = []
+		for idx_wav, start in tracks:
+			time_series = wavs[idx_wav].extract_time_series()
+			sliced = time_series[start:start + duration]
+			adjusted_tracks.append([tuple_div(x, ntracks) for x in sliced])
+		samples.extend([tuple_sum(*x) for x in zip(*adjusted_tracks)])
+	return samples
+
+def write_wav(filename, samples):
+	data = [struct.pack('<hh', *x) for x in samples]
+	fp = wave.open(filename, 'w')
+	fp.setnchannels(2)
+	fp.setsampwidth(2)
+	fp.setframerate(44100)
+	fp.writeframes(''.join(data))
+	fp.close()
 
 # wav1 = wav.Wav('songs/for the first time.wav')
 # wav2 = wav.Wav('songs/i knew you were trouble.wav')
 # wav3 = wav.Wav('songs/all i need.wav')
 # wavs = [wav1, wav2, wav3]
 
-# segments = [
-# 	([(0, 0),    (1, 1000)], 10 * SEC)
-# 	([(0, 5000), (1, 9000)], 20 * SEC)
-# ]
+SEC = 44100
+
+#first tuple says wavefile index, startframe
+#outer tuple is the list of tracks and the duration of each
+segments = [
+	([(1, 0)], 14 * SEC),
+	([(2, 0)], int(16.47 * SEC)),
+	([(0, 0)], 5 * SEC),
+	([(1, 47 * SEC)], 6 * SEC),
+	([(1, 53 * SEC), (2, 20 * SEC), (0, 20 * SEC)], 10 * SEC),
+]
+
+construct_mashup(wavs, segments)
