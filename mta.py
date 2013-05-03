@@ -28,9 +28,10 @@ def get_motifs(time_series_data):
 	mutation_template = tracker_list
 	motif_list = []
 	max_tracker_len = len(symbol_matrix)/match_threshold
+	norm = stats.norm
 
 	for i in range(max_tracker_len):
-		symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
+		# symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
@@ -62,7 +63,7 @@ def _convert_time_series(time_series):
 	norm_differential = [(diff - diff_mean)/diff_sig for diff in differential]
 
 	ntrackers = len(symbol_list)
-	percentiles = [x * (100 / ntrackers) for x in range(ntrackers + 1)]
+	percentiles = [x * (100. / ntrackers) for x in range(ntrackers + 1)]
 	zscores = [stats.scoreatpercentile(norm_differential, p) for p in percentiles]
 
 	return norm_differential, zscores
@@ -77,11 +78,11 @@ def _generate_symbol_matrix(differential, zscores):
 
 	for i in range(len(differential)):
 		for idx, (score1, score2) in enumerate(zip(zscores[:-1], zscores[1:])):
-			if i + PAA_interval < len(differential):
-				# print format("score:{} pc:{} score:{}\n".format(score1, mean(differenced_data[i:i+PAA_interval]), score2))
+			if i + PAA_interval <= len(differential) + 1:
 				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
 					symbol_matrix.append(symbol_list[idx])
-					#break
+					break
+
 	return symbol_matrix
 
 
