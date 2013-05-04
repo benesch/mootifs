@@ -45,10 +45,6 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 
 # class GenerateSymbolStageMatrixTests(unittest.TestCase):
 
-
-
-
-
 class InitializeTrackerPopulationTests(unittest.TestCase):
 	def setUp(self):
 		mta.symbol_list = map(chr, range(97, 105))
@@ -103,5 +99,6 @@ class MutateTrackersTests(unittest.TestCase):
 			mutated.append(mutant)
 
 		self.assertEqual(map(lambda t: t.word, tracker_list), mutated)
+#class GetMotifs(unittest.TestCase):
 
 # class StreamlineMotifsTests(unittest.TestCase):
