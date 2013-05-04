@@ -4,8 +4,8 @@ import numpy as np
 import sys
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 107))
-PAA_interval = 1
+symbol_list = map(chr, range(97, 105))
+PAA_interval = 5
 
 class tracker:
 	def __init__(self, word):
@@ -26,8 +26,8 @@ def get_motifs(time_series_data):
 	motif_list = []
 	max_tracker_len = len(symbol_matrix)/match_threshold
 	for i in range(max_tracker_len):
-		symbol_matrix = _generate_symbol_stage_matrix(i, symbol_matrix)
-		print len(symbol_matrix)
+		symbol_matrix = _generate_symbol_stage_matrix(i + 1, symbol_matrix)
+		#print len(symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
@@ -122,9 +122,9 @@ def _match_trackers(tracker_list, symbol_matrix):
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) <= len(symbol_matrix):
-				# print t.word
-				# print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
-				# print "---------------"
+				print t.word
+				print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
+				print "---------------"
 				match_word = [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
 				if t.word == match_word:
 					t.loc.append({'start': symbol_matrix[i][-1],
