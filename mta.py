@@ -3,13 +3,13 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 105))
-PAA_interval = 5
+symbol_list = map(chr, range(97, 107))
+PAA_interval = 1
 
 class tracker:
 	def __init__(self, word):
 		self.word = word
-		self.starts = []
+		self.loc = []
 
 def mean (lst) : return sum(lst) / len (lst)
 
@@ -26,7 +26,7 @@ def get_motifs(time_series_data):
 	max_tracker_len = len(symbol_matrix)/match_threshold
 
 	for i in range(max_tracker_len):
-		symbol_matrix = _generate_symbol_stage_matrix(i + 2, symbol_matrix)
+		symbol_matrix = _generate_symbol_stage_matrix(i, symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
@@ -71,7 +71,7 @@ def _generate_symbol_matrix(differential, zscores):
 		for idx, (score1, score2) in enumerate(zip(zscores[:-1], zscores[1:])):
 			if i + PAA_interval <= len(differential) + 1:
 				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
-					symbol_matrix.append(symbol_list[idx])
+					symbol_matrix.append((symbol_list[idx], i))
 					break
 
 	return symbol_matrix
@@ -97,21 +97,22 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 	threshold, since long enough consecutive symbol repeats could match actual
 	motifs)."""
 
-	count = 1
+	count = 0
 	num_deleted = 0
 	new_symbol_matrix = [symbol_matrix[0]]
-	for i, (s1, s2) in enumerate(zip(symbol_matrix[:-1], symbol_matrix[1:])):
-		if s1 == s2:
-			count += 1
-			if count == 1:
-				new_symbol_matrix.append(s1)
+	for i, s in enumerate(symbol_matrix[1:]):
+		s_prev = new_symbol_matrix[-1]
+		if s[0] == s_prev[0]:
+			count += s[-1] - s_prev[-1]
+			if count == 0:
+				new_symbol_matrix.append(s)
 			if count == redundancy_threshold:
 				count = 0
 			else:
 				num_deleted += 1
 		else:
 			count = 0
-			new_symbol_matrix.append(s2)
+			new_symbol_matrix.append(s)
 	return new_symbol_matrix
 
 def _match_trackers(tracker_list, symbol_matrix):
@@ -122,13 +123,15 @@ def _match_trackers(tracker_list, symbol_matrix):
 	for t in tracker_list:
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) <= len(symbol_matrix):
-				print t.word
-				print symbol_matrix[i:i+len(t.word)]
+				# print t.word
+				print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
 				print "---------------"
-				if t.word == symbol_matrix[i:i+len(t.word)]:
-					t.starts.append(i)
+				match_word = [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
+				if t.word == match_word:
+					t.loc.append({'start': symbol_matrix[i][-1],
+								  'len': symbol_matrix[i+len(t.word)-1][-1] - symbol_matrix[i][-1]})
+					print t.loc[-1]
 	return tracker_list
-
 
 def _eliminate_unmatched_trackers(tracker_list):
 	"""Only those trackers who have a match count of at least two represent
@@ -137,7 +140,7 @@ def _eliminate_unmatched_trackers(tracker_list):
 
 	matched_trackers = []
 	for t in tracker_list:
-		if len(t.starts) >= match_threshold:
+		if len(t.loc) >= match_threshold:
 			matched_trackers.append(t)
 	return matched_trackers
 
@@ -177,10 +180,10 @@ def _streamline_motifs(motif_list):
 	motif_list = sorted(motif_list, key=lambda motif: len(motif.word))
 
 	def remove_submotif(submotif, motif):
-		for start in motif.starts:
-			for substart in submotif.starts:
-				if start <= substart and substart + len(submotif.word) <= start + len(motif.word):
-					submotif.starts.remove(substart)
+		for loc in motif.loc:
+			for subloc in submotif.loc:
+				if loc['start'] <= subloc['start'] and subloc['start'] + subloc['len'] <= loc['start'] + loc['len']:
+					submotif.loc.remove(subloc)
 
 		return motif
 
@@ -188,4 +191,4 @@ def _streamline_motifs(motif_list):
 		for motif in motif_list[idx + 1:]:
 			motif = remove_submotif(submotif, motif)
 
-	return filter(lambda t: len(t.starts) >= match_threshold, motif_list)
+	return filter(lambda t: len(t.loc) >= match_threshold, motif_list)
