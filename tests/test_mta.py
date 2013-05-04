@@ -2,6 +2,7 @@ from .. import mta
 import math
 import string
 import unittest
+import itertools
 
 class ConvertTimeSeriesTests(unittest.TestCase):
 	def setUp(self):
@@ -50,7 +51,7 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 
 class InitializeTrackerPopulationTests(unittest.TestCase):
 	def setUp(self):
-	 	mta.symbol_list = map(chr, range(97, 105))
+		mta.symbol_list = map(chr, range(97, 105))
 		
 	def test_simple(self):
 		tracker_list = mta._initialize_tracker_population()
@@ -85,8 +86,22 @@ class EliminateUnmatchedTrackersTests(unittest.TestCase):
 		self.assertEqual([len(x.starts) for x in tracker_list], [2, 2,])
 
 # class VerifyGenuineMotifsTests(unittest.TestCase):
-# class MutateTrackersTests(unittest.TestCase):
-	# def setUp(self):
-	# 	mta.symbol_list = map(chr, range(97,105))
-	# 	mutation_template = 
+
+class MutateTrackersTests(unittest.TestCase):
+	def setUp(self):
+		mta.symbol_list = map(chr, range(97,105))
+
+	def test_simple(self):
+		mutation_template = mta._initialize_tracker_population()
+		tracker_list = mta._mutate_trackers(mutation_template, mutation_template)
+		permutations = list(sorted(itertools.product(map(lambda t: t.word, mutation_template), repeat=2)))
+		mutated = []
+		for perm in permutations:
+			mutant = []
+			for elt in perm:
+				mutant += elt
+			mutated.append(mutant)
+
+		self.assertEqual(map(lambda t: t.word, tracker_list), mutated)
+
 # class StreamlineMotifsTests(unittest.TestCase):

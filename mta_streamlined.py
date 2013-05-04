@@ -3,7 +3,7 @@ from scipy import stats
 import numpy as np
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 117))
+symbol_list = map(chr, range(97, 105))
 PAA_interval = 5
 
 class tracker:
@@ -23,14 +23,11 @@ def get_motifs(time_series_data):
 	mutation_template = tracker_list
 	motif_list = []
 	max_tracker_len = len(symbol_matrix)/match_threshold
-<<<<<<< HEAD
-	for i in range(max_tracker_len):
-=======
+
 	norm = stats.norm
 
 	for i in range(max_tracker_len):
 		# symbol_matrix = _generate_symbol_stage_matrix(i+2, symbol_matrix)
->>>>>>> 788f5b116093217a3d51fbdc4bd0c90b38eb2ab6
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
@@ -66,18 +63,10 @@ def _generate_symbol_matrix(differential, zscores):
 	symbol_matrix = []
 	for i in range(len(differential)):
 		for idx, (score1, score2) in enumerate(zip(zscores[:-1], zscores[1:])):
-<<<<<<< HEAD
-			if i + PAA_interval < len(differential):
-				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
-					symbol_matrix.append(symbol_list[idx])
-					break
-=======
 			if i + PAA_interval <= len(differential) + 1:
 				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
 					symbol_matrix.append(symbol_list[idx])
 					break
-
->>>>>>> 788f5b116093217a3d51fbdc4bd0c90b38eb2ab6
 	return symbol_matrix
 
 def _initialize_tracker_population():
