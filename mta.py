@@ -1,6 +1,7 @@
 import string
 from scipy import stats
 import numpy as np
+import sys
 
 match_threshold = 2
 symbol_list = map(chr, range(97, 107))
@@ -24,9 +25,9 @@ def get_motifs(time_series_data):
 	mutation_template = tracker_list
 	motif_list = []
 	max_tracker_len = len(symbol_matrix)/match_threshold
-
 	for i in range(max_tracker_len):
 		symbol_matrix = _generate_symbol_stage_matrix(i, symbol_matrix)
+		print len(symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
 		motif_list += tracker_list
@@ -51,10 +52,9 @@ def _convert_time_series(time_series):
 	differential = [(latter - former) for former, latter in paired]
 	diff_sig = stats.tstd(differential)
 	diff_mean = stats.tmean(differential)
-
 	norm_differential = [(diff - diff_mean)/diff_sig for diff in differential]
 	ntrackers = len(symbol_list)
-	percentiles = [x * (100. / ntrackers) for x in range(ntrackers + 1)]
+	percentiles = [round(x * (100. / ntrackers), 5) for x in range(ntrackers + 1)]
 	zscores = [stats.scoreatpercentile(norm_differential, p) for p in percentiles]
 
 	return norm_differential, zscores
@@ -98,22 +98,21 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 	motifs)."""
 
 	count = 0
-	num_deleted = 0
 	new_symbol_matrix = [symbol_matrix[0]]
 	for i, s in enumerate(symbol_matrix[1:]):
 		s_prev = new_symbol_matrix[-1]
 		if s[0] == s_prev[0]:
 			count += s[-1] - s_prev[-1]
-			if count == 0:
-				new_symbol_matrix.append(s)
 			if count == redundancy_threshold:
 				count = 0
-			else:
-				num_deleted += 1
+			elif count > redundancy_threshold:
+				new_symbol_matrix.append((s[0],s_prev[-1] + redundancy_threshold))
+				count -= redundancy_threshold
 		else:
 			count = 0
 			new_symbol_matrix.append(s)
 	return new_symbol_matrix
+
 
 def _match_trackers(tracker_list, symbol_matrix):
 	"""Matches the symbols in each tracker to symbols within the symbol matrix;
@@ -124,13 +123,12 @@ def _match_trackers(tracker_list, symbol_matrix):
 		for i in range(len(symbol_matrix)):
 			if i + len(t.word) <= len(symbol_matrix):
 				# print t.word
-				print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
-				print "---------------"
+				# print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
+				# print "---------------"
 				match_word = [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
 				if t.word == match_word:
 					t.loc.append({'start': symbol_matrix[i][-1],
-								  'len': symbol_matrix[i+len(t.word)-1][-1] - symbol_matrix[i][-1]})
-					print t.loc[-1]
+								  'len': symbol_matrix[i+len(t.word)-1][-1] - symbol_matrix[i][-1] + 1})
 	return tracker_list
 
 def _eliminate_unmatched_trackers(tracker_list):
@@ -176,8 +174,6 @@ def _streamline_motifs(motif_list):
 	larger motifs to streamline the process. We might modify this step, however,
 	since musical elements like the beat might be completely encapsulated within
 	larger motifs, but we still want to be able to tease smaller motifs out."""
-
-	motif_list = sorted(motif_list, key=lambda motif: len(motif.word))
 
 	def remove_submotif(submotif, motif):
 		for loc in motif.loc:
