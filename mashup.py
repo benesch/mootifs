@@ -20,8 +20,18 @@ def make_mashup():
 
 	return mta.get_motifs(ts)
 
+def generate(wavs):
+	print "generating mashup..."
+	motifs = []
+	for idx, w in enumerate(wavs):
+		print "finding motif for wav", idx
+		motifs.append(w.get_motifs())
+	motifs = [mta.get_motifs(wav) for wav in wavs]
+
+
+
 def construct(wavs, segments):
-	total_duration = max(end for idx, start, end, offset in segments)
+	total_duration = max(end for idx, start, end, offset, vol in segments)
 
 	if not utils.same(wav.nchannels for wav in wavs):
 		raise MashupError('wav files have different numbers of channels')
@@ -37,7 +47,7 @@ def construct(wavs, segments):
 	shape = (total_duration, nchannels)
 	samples = numpy.zeros(shape, dtype=numpy.int64)
 	ntracks = numpy.zeros(shape, dtype=numpy.int64)
-	for (idx, start, end, offset) in segments:
+	for (idx, start, end, offset, vol) in segments:
 		segment_duration = end - start
 		wav_duration = wavs[idx].shape[0]
 
@@ -46,23 +56,23 @@ def construct(wavs, segments):
 		if offset > wav_duration or (offset + segment_duration) > wav_duration:
 			raise MashupError('segment index out of range')
 
-		samples[start:end] += wavs[idx][offset:offset+segment_duration]
+		samples[start:end] += wavs[idx][offset:offset+segment_duration] * vol
 		ntracks[start:end] += 1
 	ntracks[ntracks == 0] = 1
 	return (samples // ntracks).astype(numpy.int16)
 
 def test():
-	wav1 = wav.Wav('songs/for the first time.wav')
-	wav2 = wav.Wav('songs/i knew you were trouble.wav')
-	wav3 = wav.Wav('songs/all i need.wav')
+	wav1 = wav.Wav('data/for the first time.wav')
+	wav2 = wav.Wav('data/i knew you were trouble.wav')
+	wav3 = wav.Wav('data/all i need.wav')
 	wavs = [wav1, wav2, wav3]
 
 	SEC = 44100
 
 	segments = [
-		(0, 2 * SEC, 25 * SEC, 17 * SEC),
-		(1, 7 * SEC, 25 * SEC, 1 * SEC),
-		(2, 19 * SEC, 25 * SEC, 33 * SEC)
+		(0, 2 * SEC, 25 * SEC, 17 * SEC, 0.8),
+		(1, 7 * SEC, 25 * SEC, 1 * SEC, 0.4),
+		(2, 19 * SEC, 25 * SEC, 33 * SEC, 1.3)
 	]
 	wav.write('out.wav', construct(wavs, segments), SEC)
 

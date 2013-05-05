@@ -49,19 +49,18 @@ def extract_instrumentals(time_series):
 	extracted = (chan1 - chan2) // 2
 	return np.hstack((extracted, np.copy(extracted)))
 
-def transpose_key(num_semitones, time_series):
+def transpose_key(shift, time_series):
 	""" transposes the key of a song by the inputted semitones using
 	a fourier transform with phase shift """
 	chan1, chan2 = np.hsplit(time_series, 2)
-	count = 0
-	while time_series.shape[0] > 1024:
-		count += 1024
-		temp = fftpack.fft(chan1[:1024]), fftpack.fft(chan2[:1024])
-		chan1.dot(2**(num_semitones/12))
-		chan2.dot(2**(num_semitones/12))
-		chan1 = chan1[512:]
-		chan2[count] = [(fftpack.ifft(chan1[:1024]), fftpack.ifft(chan2[:1024]))]
-	return np.hstack(chan1, chan2)
+	chan1_out, chan2_out = np.zeros_like(chan1), np.zeros_like(chan2)
+	for i in range(512, chan1.shape[0] - 512, 512):
+		shift1, shift2 = fftpack.rfft(chan1[i:i+1024]), fftpack.rfft(chan2[i:i+1024])
+		shift1[200:] = 0
+		shift2[200:] = 0
+		chan1_out[i:i+1024] = fftpack.irfft(shift1)
+		chan2_out[i:i+1024] = fftpack.irfft(shift2)
+	return np.hstack((chan1_out, chan2_out)).astype(np.int16)
 
 def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")

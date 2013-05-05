@@ -76,6 +76,9 @@ class Wav:
 
         return numpy.dtype(fmt)
 
+    def mono(self):
+        return numpy.add(*numpy.hsplit(self.time_series, 2)) // self.nchannels
+
     def resample(self, nsamples):
         """Resamples audio to contain `nsamples` samples
 
@@ -84,6 +87,7 @@ class Wav:
         """
         dtype = self.time_series.dtype
         return signal.resample(self.time_series, nsamples).astype(dtype)
+
 
 def write(filename, samples, sample_rate):
     #wav.write('all i need.wav', array, 44100)
