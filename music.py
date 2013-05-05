@@ -1,5 +1,4 @@
 from collections import deque
-
 import sys
 import wave
 import wav
@@ -26,19 +25,11 @@ def get_bpm(chan1):
 		avg_energy = _compute_average_energy(inst_energy_buffer)
 		count+= 1
 		if len(inst_energy_buffer) > 21:
-			#variance = 0
-			#variance += (inst_energy_buffer[21] - avg_energy)**2
 			print 1.3 * avg_energy, inst_energy_buffer[21]
-			if inst_energy_buffer[21] > 1.3 * avg_energy: #(constant1*variance + constant2) * avg_energy:
+			if inst_energy_buffer[21] > 1.3 * avg_energy:
 				beat_start.append(count)
-				print count
-				
+				print count	
 	return len(beat_start)
-
-def test_bpm():
-	w = wav.Wav("sail.wav")
-	chan1 = w.extract_time_series()
-	get_bpm(chan1)
 
 def extract_instrumentals(chan1):
 	chan_out = []
@@ -51,3 +42,8 @@ def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")
 	chan1 = w.extract_time_series()
 	extract_instrumentals(chan1)
+
+def test_bpm():
+	w = wav.Wav("sail.wav")
+	chan1 = w.extract_time_series()
+	get_bpm(chan1)
