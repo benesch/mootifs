@@ -30,6 +30,7 @@ def get_bpm(time_series):
 			print 1.3 * avg_energy, inst_energy_buffer[21]
 			if inst_energy_buffer[21] > 1.3 * avg_energy:
 				beat_start.append(count)
+				print count
 	return len(beat_start)
 
 def extract_instrumentals(time_series):
@@ -38,20 +39,19 @@ def extract_instrumentals(time_series):
 	extracted = (chan1 - chan2) // 2
 	return np.hstack(extracted, np.copy(extracted))
 
-def transpose_key(num_semitones):
+def transpose_key(num_semitones, time_series):
 	""" transposes the key of a song by the inputted semitones using
 	a fourier transform with phase shift """
-	w = wav.Wav("tune0.wav")
-	chan1 = w.time_series()
-	chan2 = np.copy(chan1)
+	chan1, chan2 = np.hsplit(time_series, 2)
 	count = 0
-	while chan1.size > 1024:
+	while time_series.shape[0] > 1024:
 		count += 1024
-		temp = fftpack.fft(chan1[0][:1024]), fftpack.fft(chan1[1][:1024])
-		(end_data1, end_data2) = 2**(num_semitones/12))
+		temp = fftpack.fft(chan1[:1024]), fftpack.fft(chan2[:1024])
+		chan1.dot(2**(num_semitones/12))
+		chan2.dot(2**(num_semitones/12))
 		chan1 = chan1[512:]
-		chan2[count] = [(fftpack.ifft(end_data1), fftpack.ifft(end_data2))]
-	return chan2
+		chan2[count] = [(fftpack.ifft(chan1[:1024]), fftpack.ifft(chan2[:1024]))]
+	return np.hstack(chan1, chan2)
 
 def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")
