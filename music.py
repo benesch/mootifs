@@ -40,11 +40,14 @@ def test_bpm():
 	chan1 = w.extract_time_series()
 	get_bpm(chan1)
 
-def extract_instrumentals():
+def extract_instrumentals(chan1):
 	chan_out = []
-	w = wav.Wav("tune0.wav")
-	chan1, chan2 = w.extract_time_series() #returns the 2 streams
-	for data1, data2 in chan1, chan2:
+	for i, (data1, data2) in enumerate(chan1):
 		chan_out.append((data1-data2)/2)
+		print chan_out[i]
 	return chan_out
 
+def test_extract_instrumentals():
+	w = wav.Wav("sail.wav")
+	chan1 = w.extract_time_series()
+	extract_instrumentals(chan1)
