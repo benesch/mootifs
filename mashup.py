@@ -46,6 +46,20 @@ def generate(wavlist):
 
 
 def construct(wavs, segments):
+	"""Constructs mashup from `wavs` specified by `segments`
+
+	Arguments:
+		wavs     -- a list of wav.Wav instances
+		segments -- a list of tuples in the following format:
+					(idx, start, end, offset, vol)
+					idx:    index of wav file in `wavs`
+					start:  starting frame in *output* file
+					end:    ending frame in *output* file
+					offset: frame to start including 
+					volume: floating-point amplitude multiplier to adjust volume
+
+	Returns numpy array of mixed samples suitable for output.
+	"""
 	total_duration = max(end for idx, start, end, offset, vol in segments)
 	shape = (total_duration, nchannels)
 	samples = numpy.zeros(shape, dtype=numpy.int64)
@@ -57,16 +71,3 @@ def construct(wavs, segments):
 		ntracks[start:end] += 1
 	ntracks[ntracks == 0] = 1
 	return (samples // ntracks).astype(numpy.int16)
-
-def test():
-	wav1 = wav.Wav('data/for the first time.wav')
-	wav2 = wav.Wav('data/i knew you were trouble.wav')
-	wav3 = wav.Wav('data/all i need.wav')
-	wavs = [wav1, wav2, wav3]
-
-	segments = [
-		(0, 2 * SEC, 25 * SEC, 17 * SEC, 0.8),
-		(1, 7 * SEC, 25 * SEC, 1 * SEC, 0.4),
-		(2, 19 * SEC, 25 * SEC, 33 * SEC, 1.3)
-	]
-	wav.write('out.wav', construct(wavs, segments), SEC)
