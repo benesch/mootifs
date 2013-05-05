@@ -72,6 +72,7 @@ class EliminateUnmatchedTrackersTests(unittest.TestCase):
 	def setUp(self):
 		mta.symbol_list = map(chr, range(97,103))
 		mta.PAA_interval = 1
+		
 	def test_simple(self):
 		ts = [0, 1, 2, 3, 4, 4, 6, 9, 12, 16, 20, 25, 30, 36, 42, 49, 57, 66, 76, 87, 99, 112, 126]
 		diff, scores = mta._convert_time_series(ts)
@@ -80,8 +81,6 @@ class EliminateUnmatchedTrackersTests(unittest.TestCase):
 		tracker_list = mta._match_trackers(tracker_list, symbol_matrix)
 		tracker_list = mta._eliminate_unmatched_trackers(tracker_list)
 		self.assertEqual([len(x.starts) for x in tracker_list], [2, 2,])
-
-# class VerifyGenuineMotifsTests(unittest.TestCase):
 
 class MutateTrackersTests(unittest.TestCase):
 	def setUp(self):
@@ -99,6 +98,5 @@ class MutateTrackersTests(unittest.TestCase):
 			mutated.append(mutant)
 
 		self.assertEqual(map(lambda t: t.word, tracker_list), mutated)
-#class GetMotifs(unittest.TestCase):
 
 # class StreamlineMotifsTests(unittest.TestCase):
