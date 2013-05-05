@@ -12,7 +12,7 @@ def usage():
     print "    bpm [wav]                    - detect bpm of wav"
     print "    instrumental [in] [out]      - extract instrumentals"
     print "    transpose [in] [out] [shift] - change pitch by shift factor"
-    print "    mash [file] [file] ...       - generate mashup from files"
+    print "    mash [file] [file] ... [out] - generate mashup from files"
     print "    wav [file]                   - find motifs from wav file"
     print "    csv [file]                   - find motifs from csv file"
 
@@ -38,9 +38,10 @@ def command_transpose(*args):
     out = music.extract_instrumentals(w.time_series, args[2])
     wav.write(args[1], out, w.sample_rate)
 
-def command_mash(*wavs):
-    wavs = [wav.Wav(w) for w in wavs]
-    music.mashup(wavs)
+def command_mash(*args):
+    wavs = [wav.Wav(w) for w in args[:-1]]
+    out = mashup.generate(wavs)
+    wav.write(args[-1], out, 44100)
 
 def command_wav(*files):
     SAMPLES = 1000
