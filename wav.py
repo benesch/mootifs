@@ -111,6 +111,7 @@ def write(filename, samples, sample_rate):
     fp.setsampwidth(samples.dtype.itemsize)
 
     fp.writeframes(samples.tostring())
+    fp.close()
     
 
 class WavFormatError(Exception):
