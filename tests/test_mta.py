@@ -35,7 +35,7 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 		ts = np.array([1, 1, 1, 1, 1, 1, 2])
 		params = mta._convert_time_series(ts)
 		symbol_matrix = mta._generate_symbol_matrix(*params)
-		putative = np.array([['a', '0'], ['a', '1'], ['a', '2'], ['a', '3'], ['a', '4'], ['h', '5']], dtype='S1')
+		putative = np.array([['a', '0'], ['a', '1'], ['a', '2'], ['a', '3'], ['a', '4'], ['h', '5']], dtype='S8')
 		self.assertTrue(np.all(symbol_matrix.flatten() == putative.flatten()))
 
 	def test_complex(self):
@@ -43,7 +43,7 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 		params = mta._convert_time_series(ts)
 		symbol_matrix = mta._generate_symbol_matrix(*params)
 		nats = [i for i in np.arange(len(mta.symbol_list))]
-		putative = np.array([mta.symbol_list, nats], dtype='S1').T
+		putative = np.array([mta.symbol_list, nats], dtype='S8').T
 		self.assertTrue(np.all(symbol_matrix.flatten() == putative.flatten()))
 
 

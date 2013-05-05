@@ -4,8 +4,8 @@ import numpy as np
 import sys
 
 match_threshold = 2
-symbol_list = np.array(map(chr, np.arange(97, 107)))
-PAA_interval = 1
+symbol_list = np.array(map(chr, np.arange(97, 105)))
+PAA_interval = 5
 
 class tracker:
 	def __init__(self, word):
@@ -25,7 +25,6 @@ def get_motifs(time_series_data):
 	mutation_template = tracker_list
 	motif_list = np.array([], dtype='object')
 	while len(tracker_list) > 0:
-		# print len(symbol_matrix)
 		symbol_matrix = _generate_symbol_stage_matrix(len(tracker_list[0].word), symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
@@ -63,14 +62,14 @@ def _generate_symbol_matrix(differential, zscores):
 	initialize our trackers.  Should get passed in differenced data."""
 
 	symbol_matrix_len = len(differential) - PAA_interval + 1
-	symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S1')
+	symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S8')
 	
 	for i in np.arange(symbol_matrix_len):
 		for idx in np.arange(len(zscores) - 1):
 			if i + PAA_interval <= len(differential):
 				lower, upper = zscores[idx:idx+2]
 				if lower <= mean(differential[i:i+PAA_interval]) <= upper:
-					symbol_matrix[i] = [symbol_list[idx], i]
+					symbol_matrix[i] = np.array([symbol_list[idx], i])
 					break
 	return symbol_matrix
 
@@ -97,7 +96,7 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 
 	symbol_matrix_len = len(symbol_matrix)
 	count = 0
-	new_symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S1')
+	new_symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S8')
 	new_symbol_matrix[0] = symbol_matrix[0]
 	for i in np.arange(symbol_matrix_len - 1):
 		s = symbol_matrix[i + 1]
@@ -107,7 +106,8 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 			if count == redundancy_threshold:
 				count = 0
 			elif count > redundancy_threshold:
-				new_symbol_matrix[i + 1] = [s[0], int(s_prev[-1]) + redundancy_threshold]
+				l = str(int(s_prev[-1]) + redundancy_threshold)
+				new_symbol_matrix[i + 1] = [s[0], l]
 				count -= redundancy_threshold
 		else:
 			count = 0
@@ -129,8 +129,9 @@ def _match_trackers(tracker_list, symbol_matrix):
 				print "---------------"
 				match_word = symbol_matrix[i:i+len(t.word)].T[0]
 				if np.all(t.word == match_word):
-					t.loc = np.append(t.loc, {'start': int(symbol_matrix[i][-1]),
-											  'len': int(symbol_matrix[i+len(t.word)-1][-1]) - int(symbol_matrix[i][-1]) + 1})
+					s = int(symbol_matrix[i][-1])
+					l = int(symbol_matrix[i+len(t.word)-1][-1]) - int(symbol_matrix[i][-1]) + 1
+					t.loc = np.append(t.loc, {'start': s, 'len': l})
 	return tracker_list
 
 def _eliminate_unmatched_trackers(tracker_list):
@@ -188,7 +189,8 @@ def _streamline_motifs(motif_list):
 		return submotif
 
 	for i in np.arange(len(motif_list)):
-		for j in np.arange(len(motif_list) - 1):
-			motif_list[motif_list != motif_list[j]] = remove_submotif(motif_list[i], motif_list[j])
+		for j, motif in enumerate(motif_list):
+			if i != j:
+				remove_submotif(motif_list[i], motif)
 
 	return filter(lambda t: len(t.loc) >= match_threshold, motif_list)
