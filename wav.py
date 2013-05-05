@@ -86,6 +86,7 @@ class Wav:
         return signal.resample(self.time_series, nsamples).astype(dtype)
 
 def write(filename, samples, sample_rate):
+    #wav.write('all i need.wav', array, 44100)
     """Writes a wavefile from a numpy array of samples
 
     Arguments:
