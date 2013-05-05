@@ -58,11 +58,15 @@ class Wav:
             if sub_chunk.getname() == 'data':
                 arr = numpy.fromfile(f, dtype=self._get_dtype(),
                                      count=sub_chunk.getsize())
+<<<<<<< HEAD
                	print sub_chunk.getsize()
                	print arr.shape
                 if self.nchannels > 1:
                     arr = arr.reshape(-1, self.nchannels)
                 self.time_series = arr
+=======
+                self.time_series = arr.reshape(-1, self.nchannels)
+>>>>>>> b6ef60128cc4e44c005705549db83ef26fbd6ab0
                 return
             sub_chunk.skip()
 
@@ -72,14 +76,20 @@ class Wav:
         if self.sample_width == 1:
             # 8-bit samples are unsigned integers
             fmt = '<u1'
-        elif 2 <= self.sample_width <= 4:
+        elif 2 <= self.sample_width <= 3:
             # 16- and 32-bit samples are signed integers
             fmt = '<i' + str(self.sample_width)
         else:
-            message = 'unrecognized sample width {}'.format(self.sample_width)
-            raise WavFormatError(message)
+            raise WavFormatError('unrecognized sample width')
 
         return numpy.dtype(fmt)
+
+    def mono(self):
+        if self.nchannels > 1:
+            channels = numpy.hsplit(self.time_series, 2)
+            return numpy.add(*channels) // self.nchannels
+        else:
+            return self.time_series
 
     def resample(self, nsamples):
         """Resamples audio to contain `nsamples` samples
@@ -89,6 +99,7 @@ class Wav:
         """
         dtype = self.time_series.dtype
         return signal.resample(self.time_series, nsamples).astype(dtype)
+
 
 def write(filename, samples, sample_rate):
     #wav.write('all i need.wav', array, 44100)

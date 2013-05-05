@@ -65,43 +65,18 @@ def extract_instrumentals(time_series):
 	extracted = (chan1 - chan2) // 2
 	return np.hstack((extracted, np.copy(extracted)))
 
-def transpose_key(num_semitones, time_series):
-	# """ transposes the key of a song by the inputted semitones using
-	# a fourier transform with phase shift """
-
-	# if time_series.ndim != 2 or time_series.shape[1] != 2:
-	# 	raise MusicError('must be stereo time_series')
-
+def transpose_key(shift, time_series):
+	""" transposes the key of a song by the inputted semitones using
+	a fourier transform with phase shift """
 	chan1, chan2 = np.hsplit(time_series, 2)
-	# chan1_new, chan2_new = np.zeros_like(chan1), np.zeros_like(chan2)
-	# count = 0
-	# print "start"
-	# for i in range(0, chan1.shape[0]-1024, 512):
-	# 	count += beat_start_window
-	# 	after_transform = (fftpack.rfft(chan1[i:i+beat_start_window]), fftpack.rfft(chan2[i:i+beat_start_window]))
-	# 	chan1phase_shift = after_transform[0]
-	# 	chan2phase_shift = after_transform[1]
-
-	chan1_trans, chan2_trans = (fftpack.rfft(chan1), fftpack.rfft(chan2))
-
-	# def shift_freq(chan_trans, shift):
-	# 	chan_new = np.zeros_like(chan_trans)
-	# 	chan_new[0] = chan_trans[0]
-	# 	for i in np.arange(len(chan_trans) - 1):
-	# 		if i > shift:
-	# 			chan_new[i + 1] = chan_trans[i + 1 - shift]
-	# 	print chan_new
-	# 	return chan_trans
-
-	# chan1_shifted, chan2_shifted = shift_freq(chan1_trans, num_semitones), shift_freq(chan1_trans, num_semitones)
-	chan1_shifted, chan2_shifted = fftpack.shift(chan1_trans, num_semitones), fftpack.shift(chan2_trans, num_semitones)
-	print chan1_shifted
-	chan1_new, chan2_new = fftpack.irfft(chan1_shifted), fftpack.irfft(chan2_shifted)
-
-		# chan1_new[i:i+beat_start_window] = fftpack.irfft(chan1phase_shift)
-		# chan2_new[i:i+beat_start_window] = fftpack.irfft(chan2phase_shift)
-
-	return np.hstack((chan1_new, chan2_new)).astype(np.int16)
+	chan1_out, chan2_out = np.zeros_like(chan1), np.zeros_like(chan2)
+	for i in range(512, chan1.shape[0] - 512, 512):
+		shift1, shift2 = fftpack.rfft(chan1[i:i+1024]), fftpack.rfft(chan2[i:i+1024])
+		shift1[200:] = 0
+		shift2[200:] = 0
+		chan1_out[i:i+1024] = fftpack.irfft(shift1)
+		chan2_out[i:i+1024] = fftpack.irfft(shift2)
+	return np.hstack((chan1_out, chan2_out)).astype(np.int16)
 
 def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")
