@@ -4,22 +4,23 @@ import numpy as np
 import sys
 
 match_threshold = 2
-symbol_list = np.array(map(chr, np.arange(97, 105)))
-PAA_interval = 5
+symbol_list = map(chr, range(97, 105))
+PAA_interval = 1
 
 class tracker:
 	def __init__(self, word):
 		self.word = np.array(word)
 		self.loc = np.array([],dtype='object')
 
-def mean (lst) : return sum(lst) / len (lst)
+def mean(lst): 
+	return sum(lst) / len(lst)
 
-def get_motifs(time_series_data):
+def get_motifs(time_series):
 	"""Runs MTA on time-series data represented as a list of floats.
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
 
-	params = _convert_time_series(time_series_data)
+	params = _convert_time_series(time_series)
 	symbol_matrix = _generate_symbol_matrix(*params)
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
@@ -46,11 +47,10 @@ def _convert_time_series(time_series):
 	intervals.
 	"""
 	differential = np.subtract(time_series[1:], time_series[:-1])
-	diff_sig = stats.tstd(differential)
-	diff_mean = stats.tmean(differential)
-	norm_differential = (differential - diff_mean)/diff_sig
-	ntrackers = len(symbol_list)
-	percentiles = np.arange(ntrackers + 1) * (100. / ntrackers)
+	std_dev = np.std(differential)
+	mean = np.mean(differential)
+	norm_differential = (differential - mean) / std_dev	
+	percentiles = np.arange(num_symbols + 1) * (100. / len(symbol_list))
 	zscores = np.array([stats.scoreatpercentile(norm_differential, p) for p in percentiles])
 
 	return norm_differential, zscores
