@@ -3,7 +3,9 @@ import numpy as np
 from scipy import fftpack
 import sys
 import wav
+import math
 
+beat_start_window = 1024
 
 def get_bpm(time_series):
 	""" calculates the bpm of a given song using the algorithm found here:
@@ -12,26 +14,40 @@ def get_bpm(time_series):
 
 	inst_energy_buffer, count = deque([], 43), 0
 	beat_start = []
+	repeat_list = deque([])
+	redundancy_threshold = 3
+	
 
 	def _compute_instant_energy(time_series):
 		inst_energy = 0
-		chan1, chan2 = np.hsplit(time_series, 2)
-		inst_energy = chan1[:1024]**2 + chan2[:1024]**2
+
+		# prevent int overflow with default dtype
+		time_series_long = np.array(time_series, dtype='int64')
+
+		chan1, chan2 = time_series_long.T
+		inst_energy = np.sum(chan1[:beat_start_window]**2 + chan2[:beat_start_window]**2)
+		return inst_energy
 
 	def _compute_average_energy(inst_energy_buffer):
 		return sum(inst_energy_buffer) / len(inst_energy_buffer)
 
-	while time_series.shape[0] > 1024:
-		inst_energy_buffer.append(_compute_instant_energy(time_series))
-		time_series = time_series[1024:]
+
+	while time_series.shape[0] > beat_start_window:
+		a = _compute_instant_energy(time_series)
+		inst_energy_buffer.appendleft(a)
 		avg_energy = _compute_average_energy(inst_energy_buffer)
-		count+= 1
-		if len(inst_energy_buffer) > 21:
-			print 1.3 * avg_energy, inst_energy_buffer[21]
-			if inst_energy_buffer[21] > 1.3 * avg_energy:
+		time_series = time_series[beat_start_window:]
+		count += 1
+
+		#print len(inst_energy_buffer)
+
+		if len(inst_energy_buffer) == 43:
+			#print 1.3 * avg_energy, inst_energy_buffer[22]
+			if inst_energy_buffer[22] > 1.3 * avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
 				beat_start.append(count)
-				print count
-	return len(beat_start)
+			inst_energy_buffer.pop()
+
+	return len(beat_start/2)
 
 def extract_instrumentals(time_series):
 	"""Attempts to remove vocals by subtracting the channels

@@ -77,7 +77,11 @@ class Wav:
         return numpy.dtype(fmt)
 
     def mono(self):
-        return numpy.add(*numpy.hsplit(self.time_series, 2)) // self.nchannels
+        if self.nchannels > 1:
+            channels = numpy.hsplit(self.time_series, 2)
+            return numpy.add(*channels) // self.nchannels
+        else:
+            return self.time_series
 
     def resample(self, nsamples):
         """Resamples audio to contain `nsamples` samples
