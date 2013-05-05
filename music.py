@@ -37,15 +37,11 @@ def get_bpm(chan1):
 				print count	
 	return len(beat_start)
 
-def extract_instrumentals(chan1):
+def extract_instrumentals(time_series):
 	""" returns a song without its vocals by subtracting the channels """
-	chan_out = np
-	for i, np.hsplit(chan1, 2) in np.nditer()
-
-	for i, (data1, data2) in enumerate(chan1):
-		chan_out.append((data1-data2)/2)
-		print chan_out[i]
-	return chan_out
+	chan1, chan2 = np.hsplit(time_series, 2)
+	extracted = (chan1 - chan2) // 2
+	return np.hstack(extracted, np.copy(extracted))
 
 def transpose_key(num_semitones):
 	""" transposes the key of a song by the inputted semitones using
