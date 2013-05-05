@@ -19,12 +19,7 @@ def make_mashup():
 
 	return mta.get_motifs(ts)
 
-# This should only get passed in songs that are already in the same key.  Extracting the key and transposing a song or songbyte is outside the purview of this project.
-# 	Ideally, the longest motif is the chorus.
-# 	The second longest motif, which comes before the chorus, is the verse.
-# 	from song 1, add in everything up until the second longest motif.  Then, add in the duration of the second longest motif.  Add in the second longest motif
-# 	of song 2.  Add in the longest motif from song 2 (chorus).  Then do some sort of mix somehow.
-# 	motif_list = mta.get_motifs(ts)
+
 # 	def get_chorus():
 # 		chorus_start, chorus_length = m[-1].starts[0], len(m[-1].word)
 
@@ -34,47 +29,47 @@ def make_mashup():
 # 		w[:chorus_start_time]
 # 	def remove_whitespace():
 
-# def tuple_sum(*args):
-# 	return tuple(sum(t) for t in zip(*args))
+def tuple_sum(*args):
+	return tuple(sum(t) for t in zip(*args))
 
-# def tuple_div(tup, divisor):
-# 	return tuple(x / divisor for x in tup)
+def tuple_div(tup, divisor):
+	return tuple(x / divisor for x in tup)
 
-# def construct_mashup(wavs, segments):
-# 	samples = []
-# 	for tracks, duration in segments:
-# 		ntracks = len(tracks)
-# 		adjusted_tracks = []
-# 		for idx_wav, start in tracks:
-# 			time_series = wavs[idx_wav].extract_time_series()
-# 			sliced = time_series[start:start + duration]
-# 			adjusted_tracks.append([tuple_div(x, ntracks) for x in sliced])
-# 		samples.extend([tuple_sum(*x) for x in zip(*adjusted_tracks)])
-# 	return samples
+def construct_mashup(wavs, segments):
+	samples = []
+	for tracks, duration in segments:
+		ntracks = len(tracks)
+		adjusted_tracks = []
+		for idx_wav, start in tracks:
+			time_series = wavs[idx_wav].extract_time_series()
+			sliced = time_series[start:start + duration]
+			adjusted_tracks.append([tuple_div(x, ntracks) for x in sliced])
+		samples.extend([tuple_sum(*x) for x in zip(*adjusted_tracks)])
+	return samples
 
 
-# def write_wav(filename, samples):
-# 	data = [struct.pack('<hh', *x) for x in samples]
-# 	fp = wave.open(filename, 'w')
-# 	fp.setnchannels(2)
-# 	fp.setsampwidth(2)
-# 	fp.setframerate(44100)
-# 	fp.writeframes(''.join(data))
-# 	fp.close()
+def write_wav(filename, samples):
+	data = [struct.pack('<hh', *x) for x in samples]
+	fp = wave.open(filename, 'w')
+	fp.setnchannels(2)
+	fp.setsampwidth(2)
+	fp.setframerate(44100)
+	fp.writeframes(''.join(data))
+	fp.close()
 
-# # wav1 = wav.Wav('songs/for the first time.wav')
-# # wav2 = wav.Wav('songs/i knew you were trouble.wav')
-# # wav3 = wav.Wav('songs/all i need.wav')
-# # wavs = [wav1, wav2, wav3]
+# wav1 = wav.Wav('songs/for the first time.wav')
+# wav2 = wav.Wav('songs/i knew you were trouble.wav')
+# wav3 = wav.Wav('songs/all i need.wav')
+# wavs = [wav1, wav2, wav3]
 
-# SEC = 44100
+SEC = 44100
 
-# #first tuple says wavefile index, startframe
-# #outer tuple is the list of tracks and the duration of each
-# segments = [
-# 	([(1, 0)], 14 * SEC),
-# 	([(2, 0)], int(16.47 * SEC)),
-# 	([(0, 0)], 5 * SEC),
-# 	([(1, 47 * SEC)], 6 * SEC),
-# 	([(1, 53 * SEC), (2, 20 * SEC), (0, 20 * SEC)], 10 * SEC),
-# ]
+#first tuple says wavefile index, startframe
+#outer tuple is the list of tracks and the duration of each
+segments = [
+	([(1, 0)], 14 * SEC),
+	([(2, 0)], int(16.47 * SEC)),
+	([(0, 0)], 5 * SEC),
+	([(1, 47 * SEC)], 6 * SEC),
+	([(1, 53 * SEC), (2, 20 * SEC), (0, 20 * SEC)], 10 * SEC),
+]
