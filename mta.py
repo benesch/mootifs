@@ -4,13 +4,14 @@ import numpy as np
 import sys
 
 match_threshold = 2
-symbol_list = map(chr, range(97, 105))
-PAA_interval = 5
+symbol_list = np.array(map(chr, np.arange(97, 105)))
+num_symbols = len(symbol_list)
+PAA_interval = 1
 
 class tracker:
 	def __init__(self, word):
-		self.word = word
-		self.loc = []
+		self.word = np.array(word)
+		self.loc = np.array([],dtype='object')
 
 def mean (lst) : return sum(lst) / len (lst)
 
@@ -19,21 +20,19 @@ def get_motifs(time_series_data):
 	Returns a list of segments-(start, end) tuples-identified as possible motifs.
 	"""
 
-	differential, zscores = _convert_time_series(time_series_data)
-	symbol_matrix = _generate_symbol_matrix(differential, zscores)
+	params = _convert_time_series(time_series_data)
+	symbol_matrix = _generate_symbol_matrix(*params)
 	tracker_list = _initialize_tracker_population()
 	mutation_template = tracker_list
-	motif_list = []
-	max_tracker_len = len(symbol_matrix)/match_threshold
-	for i in range(max_tracker_len):
-		symbol_matrix = _generate_symbol_stage_matrix(i + 1, symbol_matrix)
-		#print len(symbol_matrix)
+	motif_list = np.array([], dtype='object')
+	while len(tracker_list) > 0:
+		# print len(symbol_matrix)
+		# symbol_matrix = _generate_symbol_stage_matrix(len(tracker_list[0].word) + 1, symbol_matrix)
 		tracker_list = _match_trackers(tracker_list, symbol_matrix)
 		tracker_list = _eliminate_unmatched_trackers(tracker_list)
-		motif_list += tracker_list
+		motif_list = np.append(motif_list, tracker_list)
 		tracker_list = _mutate_trackers(tracker_list, mutation_template)
-
-	motif_list = _streamline_motifs(motif_list)
+	# motif_list = _streamline_motifs(motif_list)
 
 	return motif_list
 
@@ -48,14 +47,13 @@ def _convert_time_series(time_series):
 	specified length to determine the symbolic representations of those
 	intervals.
 	"""
-	paired = zip(time_series[:-1], time_series[1:])
-	differential = [(latter - former) for former, latter in paired]
+	differential = np.subtract(time_series[1:], time_series[:-1])
 	diff_sig = stats.tstd(differential)
 	diff_mean = stats.tmean(differential)
-	norm_differential = [(diff - diff_mean)/diff_sig for diff in differential]
-	ntrackers = len(symbol_list)
-	percentiles = [round(x * (100. / ntrackers), 5) for x in range(ntrackers + 1)]
-	zscores = [stats.scoreatpercentile(norm_differential, p) for p in percentiles]
+	norm_differential = (differential - diff_mean)/diff_sig
+	ntrackers = num_symbols
+	percentiles = np.arange(ntrackers + 1) * (100. / ntrackers)
+	zscores = np.array([stats.scoreatpercentile(norm_differential, p) for p in percentiles])
 
 	return norm_differential, zscores
 
@@ -65,15 +63,14 @@ def _generate_symbol_matrix(differential, zscores):
 	to start at any specified point), and store these in a list to later
 	initialize our trackers.  Should get passed in differenced data."""
 
-	symbol_matrix = []
-
-	for i in range(len(differential)):
-		for idx, (score1, score2) in enumerate(zip(zscores[:-1], zscores[1:])):
-			if i + PAA_interval <= len(differential) + 1:
-				if score1 <= mean(differential[i:i+PAA_interval]) <= score2:
-					symbol_matrix.append((symbol_list[idx], i))
-					break
-
+	symbol_matrix_len = len(differential) - PAA_interval + 1
+	symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S1')
+	for i in np.arange(symbol_matrix_len):
+		for idx in range(len(zscores) - 1):
+			if i + PAA_interval <= len(differential):
+				lower, upper = zscores[idx:idx+2] 
+				if lower <= mean(differential[i:i+PAA_interval]) <= upper:
+					symbol_matrix[i] = [symbol_list[idx], i]
 	return symbol_matrix
 
 
@@ -82,9 +79,9 @@ def _initialize_tracker_population():
 	match counts to zero; these will be mutated and updated as they match motifs
 	in the data set."""
 
-	tracker_list = []
-	for letter in symbol_list:
-		tracker_list.append(tracker([letter]))
+	tracker_list = np.empty(num_symbols, dtype='object')
+	for i in np.arange(num_symbols):
+		tracker_list[i] = tracker([symbol_list[i]])
 	return tracker_list
 
 
@@ -97,21 +94,25 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 	threshold, since long enough consecutive symbol repeats could match actual
 	motifs)."""
 
+	symbol_matrix_len = len(symbol_matrix)
 	count = 0
-	new_symbol_matrix = [symbol_matrix[0]]
-	for i, s in enumerate(symbol_matrix[1:]):
-		s_prev = new_symbol_matrix[-1]
+	new_symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S1')
+	new_symbol_matrix[0] = symbol_matrix[0]
+	for i in np.arange(symbol_matrix_len - 1):
+		s = symbol_matrix[i + 1]
+		s_prev = new_symbol_matrix[i]
 		if s[0] == s_prev[0]:
-			count += s[-1] - s_prev[-1]
+			count += int(s[-1]) - int(s_prev[-1])
 			if count == redundancy_threshold:
 				count = 0
 			elif count > redundancy_threshold:
-				new_symbol_matrix.append((s[0],s_prev[-1] + redundancy_threshold))
+				new_symbol_matrix[i + 1] = [s[0], int(s_prev[-1]) + redundancy_threshold]
 				count -= redundancy_threshold
 		else:
 			count = 0
-			new_symbol_matrix.append(s)
-	return new_symbol_matrix
+			new_symbol_matrix[i + 1] = s
+
+	return new_symbol_matrix[~np.all(new_symbol_matrix == '', axis=1)]
 
 
 def _match_trackers(tracker_list, symbol_matrix):
@@ -120,15 +121,15 @@ def _match_trackers(tracker_list, symbol_matrix):
 	incremented by one."""
 
 	for t in tracker_list:
-		for i in range(len(symbol_matrix)):
+		for i in np.arange(len(symbol_matrix)):
 			if i + len(t.word) <= len(symbol_matrix):
 				print t.word
-				print [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
+				print np.array([tup[0] for tup in symbol_matrix[i:i+len(t.word)]])
 				print "---------------"
-				match_word = [tup[0] for tup in symbol_matrix[i:i+len(t.word)]]
-				if t.word == match_word:
-					t.loc.append({'start': symbol_matrix[i][-1],
-								  'len': symbol_matrix[i+len(t.word)-1][-1] - symbol_matrix[i][-1] + 1})
+				match_word = symbol_matrix[i:i+len(t.word)].T[0]
+				if np.all(t.word == match_word):
+					t.loc = np.append(t.loc, {'start': int(symbol_matrix[i][-1]),
+											  'len': int(symbol_matrix[i+len(t.word)-1][-1]) - int(symbol_matrix[i][-1]) + 1})
 	return tracker_list
 
 def _eliminate_unmatched_trackers(tracker_list):
@@ -136,11 +137,12 @@ def _eliminate_unmatched_trackers(tracker_list):
 	repeated motifs; as such, only those trackers should be mutated for future
 	generations - this function eliminates all others."""
 
-	matched_trackers = []
-	for t in tracker_list:
+	matched_trackers = np.zeros(len(tracker_list), dtype='object')
+	for i in np.arange(len(tracker_list)):
+		t = tracker_list[i]
 		if len(t.loc) >= match_threshold:
-			matched_trackers.append(t)
-	return matched_trackers
+			matched_trackers[i] = t
+	return matched_trackers[matched_trackers != 0]
 
 def _verify_genuine_motifs(tracker_list, deviation_threshold):
 	"""Examines purported motif sequences and calculates the Euclidean distance
@@ -161,12 +163,12 @@ def _mutate_trackers(tracker_list, mutation_template):
 	mutation template. These new, longer trackers will then be used to find
 	longer motifs."""
 
-	new_tracker_list = []
-	for t in tracker_list:
-		for char in mutation_template:
-			new_tracker_list.append(tracker(t.word + char.word))
-	return new_tracker_list
-
+	new_tracker_list = np.zeros(len(tracker_list) * len(mutation_template), dtype='object')
+	for i in np.arange(len(tracker_list)):
+		for j in np.arange(len(mutation_template)):
+			# print np.append(tracker_list[i].word, mutation_template[j].word)
+			new_tracker_list[i + j] = tracker(np.append(tracker_list[i].word, mutation_template[j].word))
+	return np.trim_zeros(new_tracker_list)
 
 
 def _streamline_motifs(motif_list):
@@ -177,14 +179,17 @@ def _streamline_motifs(motif_list):
 
 	def remove_submotif(submotif, motif):
 		for loc in motif.loc:
-			for subloc in submotif.loc:
-				if loc['start'] <= subloc['start'] and subloc['start'] + subloc['len'] <= loc['start'] + loc['len']:
-					submotif.loc.remove(subloc)
-
+			sublocs = submotif.loc
+			submotif.loc = np.zeros(len(sublocs), dtype='object')
+			for i in np.arange(len(sublocs)):
+				if not (loc['start'] <= sublocs[i]['start'] and sublocs[i]['start'] + sublocs[i]['len'] <= loc['start'] + loc['len']):
+					submotif.loc[i] = sublocs[i]				
+			submotif.loc = submotif.loc[submotif.loc != 0]
 		return motif
 
-	for idx, submotif in enumerate(motif_list):
-		for motif in motif_list[idx + 1:]:
-			motif = remove_submotif(submotif, motif)
+	for i in np.arange(len(motif_list)):
+		for j in np.arange(len(motif_list)):
+			if i != j:
+				motif_list[j] = remove_submotif(motif_list[i], motif_list[j])
 
 	return filter(lambda t: len(t.loc) >= match_threshold, motif_list)
