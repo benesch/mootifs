@@ -1,8 +1,7 @@
 from collections import deque
 import numpy as np
-from scipy import stats
+from scipy import fftpack
 import sys
-import wave
 import wav
 
 def get_bpm(chan1):
@@ -40,19 +39,25 @@ def extract_instrumentals(chan1):
 		print chan_out[i]
 	return chan_out
 
-# def transpose_key():
-# 	w = wav.Wav("tune0.wav")
-# 	array = blank
-# 	for 1/10 seconds = x in audio file:
-# 		append to array, stats.fft(x)
-	
+def transpose_key(num_semitones):
+	w = wav.Wav("tune0.wav")
+	chan1 = w.time_series()
+	chan2 = np.copy(chan1)
+	count = 0
+	while chan1.size > 1024:
+		count += 1024
+		temp = fftpack.fft(chan1[0][:1024]), fftpack.fft(chan1[1][:1024])
+		(end_data1, end_data2) = 2**(num_semitones/12))
+		chan1 = chan1[512:]
+		chan2[count] = [(fftpack.ifft(end_data1), fftpack.ifft(end_data2))]
+	return chan2
 
 def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")
-	chan1 = w.extract_time_series()
+	chan1 = w.time_series()
 	extract_instrumentals(chan1)
 
 def test_bpm():
 	w = wav.Wav("sail.wav")
-	chan1 = w.extract_time_series()
+	chan1 = w.time_series()
 	get_bpm(chan1)
