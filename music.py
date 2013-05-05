@@ -1,4 +1,6 @@
 from collections import deque
+import numpy as np
+from scipy import stats
 import sys
 import wave
 import wav
@@ -37,6 +39,13 @@ def extract_instrumentals(chan1):
 		chan_out.append((data1-data2)/2)
 		print chan_out[i]
 	return chan_out
+
+# def transpose_key():
+# 	w = wav.Wav("tune0.wav")
+# 	array = blank
+# 	for 1/10 seconds = x in audio file:
+# 		append to array, stats.fft(x)
+	
 
 def test_extract_instrumentals():
 	w = wav.Wav("sail.wav")

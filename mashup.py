@@ -3,7 +3,6 @@ import struct
 import wav
 import wave
 
-
 def make_mashup():
 	"""Uses musical qualities determined by the Music module to combine motifs
 	from the various songs provided in an audibly pleasing way.
@@ -18,16 +17,6 @@ def make_mashup():
 	#ts = [0,1,3,6,10,15,21,28,36,45,55,0,1,3,6,10,15,21,28,36,45,55]
 
 	return mta.get_motifs(ts)
-
-
-# 	def get_chorus():
-# 		chorus_start, chorus_length = m[-1].starts[0], len(m[-1].word)
-
-# 	def get_verse():
-# 		chorus_start_time, chorus_end_time = *get_chorus()
-
-# 		w[:chorus_start_time]
-# 	def remove_whitespace():
 
 def tuple_sum(*args):
 	return tuple(sum(t) for t in zip(*args))
@@ -47,7 +36,6 @@ def construct_mashup(wavs, segments):
 		samples.extend([tuple_sum(*x) for x in zip(*adjusted_tracks)])
 	return samples
 
-
 def write_wav(filename, samples):
 	data = [struct.pack('<hh', *x) for x in samples]
 	fp = wave.open(filename, 'w')
@@ -64,6 +52,7 @@ def write_wav(filename, samples):
 
 SEC = 44100
 
+#beat_count * 1024
 #first tuple says wavefile index, startframe
 #outer tuple is the list of tracks and the duration of each
 segments = [
