@@ -38,10 +38,20 @@ def get_bpm(chan1):
 	return len(beat_start)
 
 def extract_instrumentals(time_series):
-	""" returns a song without its vocals by subtracting the channels """
+	"""Attempts to remove vocals by subtracting the channels
+
+	Arguments:
+		time_series -- the numpy array of samples. Must be stereo (two channel).
+
+	Relies on vocals being mixed equally between channels. Returns an array of
+	the same shape, but the channels will be duplicates of one another.
+	"""
+	if time_series.ndim != 2 or time_series.shape[1] != 2:
+		raise MusicError('must be stereo time_series')
+
 	chan1, chan2 = np.hsplit(time_series, 2)
 	extracted = (chan1 - chan2) // 2
-	return np.hstack(extracted, np.copy(extracted))
+	return np.hstack((extracted, np.copy(extracted)))
 
 def transpose_key(num_semitones):
 	""" transposes the key of a song by the inputted semitones using
@@ -67,3 +77,6 @@ def test_bpm():
 	w = wav.Wav("sail.wav")
 	chan1 = w.time_series()
 	get_bpm(chan1)
+
+class MusicError(Exception):
+	pass

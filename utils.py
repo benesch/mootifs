@@ -1,4 +1,5 @@
 def same(iterable):
+	"""Returns true if every element of `iterable` is equal"""
 	iterator = iter(iterable)
 	try:
 		first = iterator.next()
