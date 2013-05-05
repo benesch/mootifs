@@ -38,6 +38,20 @@ def generate(wavs):
 
 
 def construct(wavs, segments):
+	"""Constructs mashup from `wavs` specified by `segments`
+
+	Arguments:
+		wavs     -- a list of wav.Wav instances
+		segments -- a list of tuples in the following format:
+					(idx, start, end, offset, vol)
+					idx:    index of wav file in `wavs`
+					start:  starting frame in *output* file
+					end:    ending frame in *output* file
+					offset: frame to start including 
+					volume: floating-point amplitude multiplier to adjust volume
+
+	Returns numpy array of mixed samples suitable for output.
+	"""
 	total_duration = max(end for idx, start, end, offset, vol in segments)
 	shape = (total_duration, nchannels)
 	samples = numpy.zeros(shape, dtype=numpy.int64)
