@@ -5,32 +5,32 @@ import sys
 import wav
 import math
 
+constant1, constant2 = -0.0025714, 1.5142857
 beat_start_window = 1024
+buffer_size = 43
 
 def get_bpm(time_series):
 	""" calculates the bpm of a given song using the algorithm found here:
 	http://archive.gamedev.net/archive/reference/programming/
 	features/beatdetection/"""
 
-	inst_energy_buffer, count = deque([], 43), 0
+	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
 	repeat_list = deque([])
 	redundancy_threshold = 3
-	
 
 	def _compute_instant_energy(time_series):
-		inst_energy = 0
-
-		# prevent int overflow with default dtype
+		""" gets sum of energy contained in over 1024 parts
+		in int64 to prevent overflow """
 		time_series_long = np.array(time_series, dtype='int64')
-
+		inst_energy = 0
 		chan1, chan2 = time_series_long.T
 		inst_energy = np.sum(chan1[:beat_start_window]**2 + chan2[:beat_start_window]**2)
 		return inst_energy
 
 	def _compute_average_energy(inst_energy_buffer):
+		""" calculates local average energy around an inst_energy """
 		return sum(inst_energy_buffer) / len(inst_energy_buffer)
-
 
 	while time_series.shape[0] > beat_start_window:
 		a = _compute_instant_energy(time_series)
@@ -38,16 +38,16 @@ def get_bpm(time_series):
 		avg_energy = _compute_average_energy(inst_energy_buffer)
 		time_series = time_series[beat_start_window:]
 		count += 1
-
 		#print len(inst_energy_buffer)
-
-		if len(inst_energy_buffer) == 43:
+		if len(inst_energy_buffer) == buffer_size:
+			variance = 0
+			variance = (np.std(inst_energy_buffer))**2
 			#print 1.3 * avg_energy, inst_energy_buffer[22]
-			if inst_energy_buffer[22] > 1.3 * avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
+			if inst_energy_buffer[22] > ((constant1*variance) - constant2) and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
-	return len(beat_start/2)
+	return len(beat_start)
 
 def extract_instrumentals(time_series):
 	"""Attempts to remove vocals by subtracting the channels

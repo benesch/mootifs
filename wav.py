@@ -79,6 +79,7 @@ class Wav:
         return numpy.dtype(fmt)
 
     def mono(self):
+        """ Returns a single channel """
         if self.nchannels > 1:
             channels = numpy.hsplit(self.time_series, 2)
             return numpy.add(*channels) // self.nchannels
