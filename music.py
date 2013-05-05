@@ -52,6 +52,10 @@ def extract_instrumentals(time_series):
 def transpose_key(num_semitones, time_series):
 	""" transposes the key of a song by the inputted semitones using
 	a fourier transform with phase shift """
+
+	if time_series.ndim != 2 or time_series.shape[1] != 2:
+		raise MusicError('must be stereo time_series')
+
 	chan1, chan2 = np.hsplit(time_series, 2)
 	count = 0
 	while time_series.shape[0] > 1024:

@@ -58,7 +58,9 @@ class Wav:
             if sub_chunk.getname() == 'data':
                 arr = numpy.fromfile(f, dtype=self._get_dtype(),
                                      count=sub_chunk.getsize())
-                self.time_series = arr.reshape(-1, self.nchannels)
+                if self.nchannels > 1:
+                    arr = arr.reshape(-1, self.nchannels)
+                self.time_series = arr
                 return
             sub_chunk.skip()
 
@@ -68,11 +70,12 @@ class Wav:
         if self.sample_width == 1:
             # 8-bit samples are unsigned integers
             fmt = '<u1'
-        elif 2 <= self.sample_width <= 3:
+        elif 2 <= self.sample_width <= 4:
             # 16- and 32-bit samples are signed integers
             fmt = '<i' + str(self.sample_width)
         else:
-            raise WavFormatError('unrecognized sample width')
+            message = 'unrecognized sample width {}'.format(self.sample_width)
+            raise WavFormatError(message)
 
         return numpy.dtype(fmt)
 
