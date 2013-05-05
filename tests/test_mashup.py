@@ -1,3 +1,5 @@
+SEC = 44100
+
 def test_simple():
 	wav1 = wav.Wav('data/for the first time.wav')
 	wav2 = wav.Wav('data/i knew you were trouble.wav')

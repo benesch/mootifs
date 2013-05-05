@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import mta
 import mashup
 import numpy
@@ -25,7 +25,7 @@ def command_csv(wavfile):
         end_sec = tracker.loc['length'] / w.sample_rate
         print tracker.word
         print "\tstart {}, end {}".format(start_sec, end_sec)
-        
+
 def command_csv(csvfile):
     arr = numpy.genfromtxt(csvfile, delimiter=',')
     if arr.ndim > 1:
