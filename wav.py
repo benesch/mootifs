@@ -58,6 +58,8 @@ class Wav:
             if sub_chunk.getname() == 'data':
                 arr = numpy.fromfile(f, dtype=self._get_dtype(),
                                      count=sub_chunk.getsize())
+               	print sub_chunk.getsize()
+               	print arr.shape
                 if self.nchannels > 1:
                     arr = arr.reshape(-1, self.nchannels)
                 self.time_series = arr
