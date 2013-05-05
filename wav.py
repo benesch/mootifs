@@ -15,8 +15,7 @@ class Wav:
         sample_width -- width of one channel's sample in bytes
         sample_rate  -- sampling frequency in hertz
         duration     -- audio duration in seconds
-        time_series  -- samples in numpy array of shape (number of samples,
-                        number of channels)
+        time_series  -- samples in numpy array of shape (nsamples, nchannels)
     """
 
     def __init__(self, filename):
@@ -45,8 +44,7 @@ class Wav:
         verification of WAVE file format. Uses numpy to efficiently read in
         binary data from file.
 
-        Sets `time_series` to a numpy array with shape (number of samples,
-        number of channels).
+        Sets `time_series` to a numpy array with shape (nsamples, ns).
         """
         f.seek(0)
         file_chunk = chunk.Chunk(f, bigendian=False)
@@ -78,13 +76,38 @@ class Wav:
 
         return numpy.dtype(fmt)
 
-    def resample(self, num_samples):
-        """Resamples to `num_samples`
+    def resample(self, nsamples):
+        """Resamples audio to contain `nsamples` samples
 
         Uses scipy signal processing to resample audio using the Fourier method.
-        Returns resampled numpy array of size (num_samples, number of channels)
+        Returns resampled numpy array of size (nsamples, nchannels)
         """
-        return signal.resample(self.time_series, num_samples)
+        dtype = self.time_series.dtype
+        return signal.resample(self.time_series, nsamples).astype(dtype)
+
+def write(filename, samples, sample_rate):
+    """Writes a wavefile from a numpy array of samples
+
+    Arguments:
+        filename -- wav filename as string
+        samples  -- a numpy array of shape (nsamples, nchannels) of audio 
+                    samples. Must be an integer type.
+        rate     -- sample frequency in hertz
+    """
+
+    fp = wave.open(filename, 'wb')
+
+    if samples.ndim == 1:
+        fp.setnchannels(1)
+    else:
+        fp.setnchannels(samples.shape[1])
+
+    fp.setnframes(samples.shape[0])
+    fp.setframerate(sample_rate)
+    fp.setsampwidth(samples.dtype.itemsize)
+
+    fp.writeframes(samples.tostring())
+    
 
 class WavFormatError(Exception):
     pass
