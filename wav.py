@@ -80,11 +80,7 @@ class Wav:
 
     def mono(self):
         """ Returns a single channel """
-        if self.nchannels > 1:
-            channels = numpy.hsplit(self.time_series, 2)
-            return numpy.add(*channels) // self.nchannels
-        else:
-            return self.time_series
+        return mono(self.time_series)
 
     def resample(self, nsamples):
         """Resamples audio to contain `nsamples` samples
@@ -95,6 +91,12 @@ class Wav:
         dtype = self.time_series.dtype
         return signal.resample(self.time_series, nsamples).astype(dtype)
 
+def mono(samples):
+    if samples.ndim > 1:
+        channels = numpy.hsplit(samples, 2)
+        return numpy.add(*channels) // samples.shape[1]
+    else:
+        return samples
 
 def write(filename, samples, sample_rate):
     #wav.write('all i need.wav', array, 44100)

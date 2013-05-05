@@ -1,52 +1,96 @@
 #!/usr/bin/env python
 import mta
 import mashup
+import music
 import numpy
 import sys
 import wav
 
 def usage():
-    print "usage: mootifs [command] [file] [file] [file] ..."
+    print "usage: mootifs [command]"
     print "commands:"
-    print "    mash - generate mashup from files"
-    print "    wav  - export motifs from first wav file"
-    print "    csv  - export motifs from first csv file"
+    print "    bpm [wav]                    - detect bpm of wav"
+    print "    instrumental [in] [out]      - extract instrumentals"
+    print "    transpose [in] [out] [shift] - change pitch by shift factor"
+    print "    mash [file] [file] ...       - generate mashup from files"
+    print "    wav [file]                   - find motifs from wav file"
+    print "    csv [file]                   - find motifs from csv file"
 
 
-def command_mash(wavs):
+def command_bpm(*files):
+    w = wav.Wav(files[0])
+    bpm = music.get_bpm(w.time_series)
+    print "{}bpm".format(bpm)
+
+def command_instrumental(*args):
+    if len(args) != 2:
+        usage()
+        return
+    w = wav.Wav(args[0])
+    out = music.extract_instrumentals(w.time_series)
+    wav.write(args[1], out, w.sample_rate)
+
+def command_transpose(*args):
+    if len(args) != 3:
+        usage()
+        return
+    w = wav.Wav(args[0])
+    out = music.extract_instrumentals(w.time_series, args[2])
+    wav.write(args[1], out, w.sample_rate)
+
+def command_mash(*wavs):
     wavs = [wav.Wav(w) for w in wavs]
     music.mashup(wavs)
 
-def command_csv(wavfile):
-    w = wav.Wav(wavfile)
-    motifs = mta.get_motifs(w.mono())
+def command_wav(*files):
+    SAMPLES = 1000
+    w = wav.Wav(files[0])
+    arr = wav.mono(w.resample(SAMPLES))
+    motifs = mta.get_motifs(arr)
+    print
+    print "discovered motifs"
+    print "-----------------"
+    print "data length:", arr.shape[0]
+    print
     for tracker in motifs:
-        start_sec = tracker.loc['start'] / w.sample_rate
-        end_sec = tracker.loc['length'] / w.sample_rate
         print tracker.word
-        print "\tstart {}, end {}".format(start_sec, end_sec)
+        for loc in tracker.loc:
+            start_sec = (loc['start'] / float(SAMPLES)) * w.duration
+            len_sec = (loc['len'] / float(SAMPLES)) * w.duration
+            print "\tstart {}s, length {}s".format(start_sec, len_sec)
 
-def command_csv(csvfile):
-    arr = numpy.genfromtxt(csvfile, delimiter=',')
+def command_csv(*files):
+    arr = numpy.genfromtxt(csvfile[0], delimiter=',')
     if arr.ndim > 1:
         raise Error('csv has more than one column')
 
     motifs = mta.get_motifs(arr)
+    print
+    print "discovered motifs"
+    print "-----------------"
+    print "data length:", arr.shape[0]
+    print
     for tracker in motifs:
         print tracker.word
-        print "\tstart {}, length {}".format(tracker.loc['start'],
-                                             tracker.loc['length'])
+        for loc in tracker.loc:
+            print "\tstart {}, length {}".format(loc['start'], loc['len'])
 
 if len(sys.argv) > 2:
     command = sys.argv[1]
-    files = sys.argv[2:]
+    args = sys.argv[2:]
 
-    if command == 'mash':
-        command_mash(files)
+    if command == 'bpm':
+        command_bpm(*args)
+    elif command == 'instrumental':
+        command_instrumental(*args)
+    elif command == 'transpose':
+        command_tranpose(*args)
+    elif command == 'mash':
+        command_mash(*args)
     elif command == 'wav':
-        command_wav(files[0])
+        command_wav(*args)
     elif command == 'csv':
-        command_csv(files[0])
+        command_csv(*args)
     else:
         usage()
 else:
