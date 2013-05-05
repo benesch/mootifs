@@ -62,7 +62,7 @@ segments = [
 	([(2, 0)], int(16.47 * SEC)),
 	([(0, 0)], 5 * SEC),
 	([(1, 47 * SEC)], 6 * SEC),
-	([(1, 53 * SEC), (2, 20 * SEC), (0, 20 * SEC)], 10 * SEC),
+	([(1, 53 * SEC), (2, 20 * SEC)], 10 * SEC),
 ]
 
-construct_mashup(wavs, segments)
+write_wav('out.wav', construct_mashup(wavs, segments))

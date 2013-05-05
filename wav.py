@@ -1,72 +1,90 @@
 from scipy import io
 from scipy import signal
+import chunk
+import numpy
 import struct
 import wave
 
 class Wav:
-	"""Reads in wave files and stores them in a Wav class optimized for use with
-	our music characteristic identification module.
-	"""
+    """Reads in wav files and stores them in a Wav class optimized for use with
+    our music characteristic identification module.
 
-	def __init__(self, filename):
-		self.fp = wave.open(filename, 'r')
-		self.time_series = None
+    Public variables:
+        nchannels    -- number of audio channels (1 for mono, 2 for stereo)
+        nsamples     -- number of audio samples 
+        sample_width -- width of one channel's sample in bytes
+        sample_rate  -- sampling frequency in hertz
+        duration     -- audio duration in seconds
+        time_series  -- samples in numpy array of shape (number of samples,
+                        number of channels)
+    """
 
-	def read_frame(self):
-		"""Allow for iteration"""
-		return self.fp.readframes(1)
+    def __init__(self, filename):
+        f = open(filename, 'rb')
+        self._read_wav_info(f)
+        self._read_wav_data(f)
 
-	def get_format(self):
-		"""Returns a tuple (bytes, fmt) specifying wave file format
+    def _read_wav_info(self, f):
+        """Read metadata from wav file f
 
-		bytes - the width of each channel's sample in bytes
-		fmt - a struct-compatible format string specifying integer length
-		"""
-		nchannels = self.fp.getnchannels()
-		bytes = self.fp.getsampwidth()
-		fmts = { 1: 'B', 2: 'h', 4: 'i' }
-		try:
-			fmt = '<' + (fmts[bytes] * nchannels)
-		except ValueError:
-			raise WavFormatError('unrecognized sample width')
-		return fmt
+        Uses standard library wave module to extract metadata from wav file into
+        instance variables.
+        """
+        fp = wave.open(f, 'r')
+        self.nchannels = fp.getnchannels()
+        self.nsamples = fp.getnframes()
+        self.sample_width = fp.getsampwidth()
+        self.sample_rate = fp.getframerate()
+        self.duration = self.nsamples // self.sample_rate
+        fp.close()
 
-	def extract_time_series(self):
-		"""Convert wave file into time series data.
+    def _read_wav_data(self, f):
+        """Read samples from wave file `f`
 
-		For simplicity, this function extracts data from only the first channel.
-		Returns a list of integer amplitudes.
-		"""
-		if self.time_series is None:
-			self.fp.rewind()
-			fmt = self.get_format()
-			it = iter(self.read_frame, b'')
-			self.time_series = [struct.unpack(fmt, frame) for frame in it]
+        Uses standard library chunk module to perform traversal and basic
+        verification of WAVE file format. Uses numpy to efficiently read in
+        binary data from file.
 
-		return self.time_series
+        Sets `time_series` to a numpy array with shape (number of samples,
+        number of channels).
+        """
+        f.seek(0)
+        file_chunk = chunk.Chunk(f, bigendian=False)
+        if file_chunk.read(4) != 'WAVE':
+            raise WavFormatError('invalid wav file')
+        while True:
+            try:
+                sub_chunk = chunk.Chunk(file_chunk, bigendian=False)
+            except EOFError:
+                raise WavFormatError('unable to find data chunk')
+            if sub_chunk.getname() == 'data':
+                arr = numpy.fromfile(f, dtype=self._get_dtype(),
+                                     count=sub_chunk.getsize())
+                self.time_series = arr.reshape(-1, self.nchannels)
+                return
+            sub_chunk.skip()
 
-	def resample(self, num_samples):
-		channels = zip(*self.extract_time_series())
-		resampled = [signal.resample(c, num_samples).tolist() for c in channels]
-		return zip(*resampled)
 
-	def test_output(self, filename, num_samples=None):
-		"""Write time-series data back into wave file for corruption check"""
-		if num_samples is None:
-			framerate = self.fp.getframerate()
-			time_series = self.extract_time_series()
-		else:
-			time_series = self.resample(num_samples)
-			framerate = (self.fp.getframerate() * num_samples) / self.fp.getnframes()
+    def _get_dtype(self):
+        """Returns numpy datatype specifying format of wav file samples"""
+        if self.sample_width == 1:
+            # 8-bit samples are unsigned integers
+            fmt = '<u1'
+        elif 2 <= self.sample_width <= 3:
+            # 16- and 32-bit samples are signed integers
+            fmt = '<i' + str(self.sample_width)
+        else:
+            raise WavFormatError('unrecognized sample width')
 
-		fmt = self.get_format()
-		data = [struct.pack(fmt, *x) for x in time_series]
+        return numpy.dtype(fmt)
 
-		out = wave.open(filename, 'w')
-		out.setparams(self.fp.getparams())
-		out.setframerate(framerate)
-		out.writeframes(''.join(data))
-		out.close()
+    def resample(self, num_samples):
+        """Resamples to `num_samples`
+
+        Uses scipy signal processing to resample audio using the Fourier method.
+        Returns resampled numpy array of size (num_samples, number of channels)
+        """
+        return signal.resample(self.time_series, num_samples)
 
 class WavFormatError(Exception):
-	pass
+    pass
