@@ -1,5 +1,7 @@
 import mta
+import numpy
 import struct
+import utils
 import wav
 import wave
 
@@ -18,48 +20,54 @@ def make_mashup():
 
 	return mta.get_motifs(ts)
 
-def tuple_sum(*args):
-	return tuple(sum(t) for t in zip(*args))
+def construct(wavs, segments):
+	total_duration = max(end for idx, start, end, offset in segments)
 
-def tuple_div(tup, divisor):
-	return tuple(x / divisor for x in tup)
+	if not utils.same(wav.nchannels for wav in wavs):
+		raise MashupError('wav files have different numbers of channels')
+	nchannels = wavs[0].nchannels
 
-def construct_mashup(wavs, segments):
-	samples = []
-	for tracks, duration in segments:
-		ntracks = len(tracks)
-		adjusted_tracks = []
-		for idx_wav, start in tracks:
-			time_series = wavs[idx_wav].extract_time_series()
-			sliced = time_series[start:start + duration]
-			adjusted_tracks.append([tuple_div(x, ntracks) for x in sliced])
-		samples.extend([tuple_sum(*x) for x in zip(*adjusted_tracks)])
-	return samples
+	sample_rates = [wav.sample_rate for wav in wavs]
+	if not utils.same(sample_rates):
+		sample_rate = max(sample_rates)
+		wavs = [wav.resample(max_rate) for wav in wavs]
+	else:
+		wavs = [wav.time_series for wav in wavs]
 
-def write_wav(filename, samples):
-	data = [struct.pack('<hh', *x) for x in samples]
-	fp = wave.open(filename, 'w')
-	fp.setnchannels(2)
-	fp.setsampwidth(2)
-	fp.setframerate(44100)
-	fp.writeframes(''.join(data))
-	fp.close()
+	shape = (total_duration, nchannels)
+	samples = numpy.zeros(shape, dtype=numpy.int64)
+	ntracks = numpy.zeros(shape, dtype=numpy.int64)
+	for (idx, start, end, offset) in segments:
+		segment_duration = end - start
+		wav_duration = wavs[idx].shape[0]
 
-# wav1 = wav.Wav('songs/for the first time.wav')
-# wav2 = wav.Wav('songs/i knew you were trouble.wav')
-# wav3 = wav.Wav('songs/all i need.wav')
-# wavs = [wav1, wav2, wav3]
+		if start > end:
+			raise MashupError('segment start index must be less than end index')
+		if offset > wav_duration or (offset + segment_duration) > wav_duration:
+			raise MashupError('segment index out of range')
 
-SEC = 44100
+		samples[start:end] += wavs[idx][offset:offset+segment_duration]
+		ntracks[start:end] += 1
+	ntracks[ntracks == 0] = 1
+	return (samples // ntracks).astype(numpy.int16)
 
-#beat_count * 1024
-#first tuple says wavefile index, startframe
-#outer tuple is the list of tracks and the duration of each
-segments = [
-	([(1, 0)], 14 * SEC),
-	([(2, 0)], int(16.47 * SEC)),
-	([(0, 0)], 5 * SEC),
-	([(1, 47 * SEC)], 6 * SEC),
-	([(1, 53 * SEC), (2, 20 * SEC)], 10 * SEC),
-]
-write_wav('out.wav', construct_mashup(wavs, segments))
+def test():
+	wav1 = wav.Wav('songs/for the first time.wav')
+	wav2 = wav.Wav('songs/i knew you were trouble.wav')
+	wav3 = wav.Wav('songs/all i need.wav')
+	wavs = [wav1, wav2, wav3]
+
+	SEC = 44100
+
+	segments = [
+		(0, 2 * SEC, 25 * SEC, 17 * SEC),
+		(1, 7 * SEC, 25 * SEC, 1 * SEC),
+		(2, 19 * SEC, 25 * SEC, 33 * SEC)
+	]
+	wav.write('out.wav', construct(wavs, segments), SEC)
+
+class MashupError(Exception):
+	pass
+
+if __name__ == '__main__':
+	test()
