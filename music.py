@@ -39,9 +39,16 @@ def get_bpm(chan1):
 
 def extract_instrumentals(chan1):
 	""" returns a song without its vocals by subtracting the channels """
+	chan_out = []
+	for i, (data1, data2) in enumerate(chan1):
+		chan_out.append((data1-data2)/2)
+		print chan_out[i]
+	return chan_out
+
+def extract_instrumentals(chan1):
+	""" returns a song without its vocals by subtracting the channels """
 	chan_out = np
 	for i, np.hsplit(chan1, 2) in np.nditer()
-
 	for i, (data1, data2) in enumerate(chan1):
 		chan_out.append((data1-data2)/2)
 		print chan_out[i]
