@@ -19,7 +19,7 @@ def usage():
 
 def command_bpm(*files):
     w = wav.Wav(files[0])
-    bpm = music.get_bpm(w.time_series)
+    bpm = music.get_bpm(w)
     print "{}bpm".format(bpm)
 
 def command_instrumental(*args):
