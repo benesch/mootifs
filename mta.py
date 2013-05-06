@@ -70,8 +70,8 @@ def _convert_time_series(time_series):
 	intervals.
 	"""
 	differential = np.subtract(time_series[1:], time_series[:-1])
-	std_dev = np.std(differential)
-	mean = np.mean(differential)
+	std_dev = stats.tstd(differential)
+	mean = stats.tmean(differential)
 	norm_differential = (differential - mean) / std_dev	
 	percentiles = np.arange(len(symbol_list) + 1) * (100. / len(symbol_list))
 	zscores = np.array([stats.scoreatpercentile(norm_differential, p) for p in percentiles])

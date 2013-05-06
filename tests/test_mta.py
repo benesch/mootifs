@@ -7,7 +7,7 @@ import itertools
 
 class ConvertTimeSeriesTests(unittest.TestCase):
 	def setUp(self):
-		mta.symbol_list = map(chr, range(97, 105))
+		mta.symbol_list = map(chr, range(97, 103))
 
 	def test_simple(self):
 		ts = np.array([0, 1, 4, 9, 16, 25, 36])
@@ -22,9 +22,7 @@ class ConvertTimeSeriesTests(unittest.TestCase):
 		diff, scores = mta._convert_time_series(ts)		
 
 		self.assertTrue(np.all(diff == ts_diff_norm))
-		print diff
-		print scores
-
+		
 
 class GenerateSymbolMatrixTests(unittest.TestCase):
 	def setUp(self):

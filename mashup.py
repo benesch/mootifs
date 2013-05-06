@@ -1,4 +1,3 @@
-import itertools
 import mta
 import music
 import numpy
