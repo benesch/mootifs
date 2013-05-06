@@ -1,4 +1,3 @@
-import itertools
 import mta
 import music
 import numpy
@@ -10,33 +9,21 @@ import wave
 SEC = 44100
 
 def generate(wavlist):
-	"""Generates basic mashup from list of waves
-
-	Arguments:
-		wavlist -- list of wav.Wav instances. Assumes at least one wav is
-				   present and that 44100 Hz is an appropriate sample rate.
-
-	Returns numpy array of mashed-up samples suitable for output
-	"""
-	base = music.extract_instrumentals(wavlist[0])
-	base_segment = (0, 0, base.duration, 0, .7)
+	base_wav = wavlist[0]
 
 	motifs = []
 	for i, w in enumerate(wavlist[1:]):
 		print 'finding motifs for wave', i
-		motif = mta.get_longest_motif(w.resample(100))
-		motifs.append([w, motif])
+		motifs.append([w, mta.get_longest_motif(w.resample(100))])
+
 	random.shuffle(motifs)
-
-	segments = [base_segment]
+	segments = [(0, 2 * SEC, (2 + base_wav.duration) * SEC, 0, 1)]
 	wavs = [base_wav.time_series]
-	for i, (wav, (mstart, mend)) in enumerate(motifs):
-		start = 
-		end = start + (mend - mstart)
-		offset = mstart
-
-		segment = (i + 1, start, end, offset, 1)
-		segments.append(segment)
+	for i, m in enumerate(motifs):
+		start = (i + 1) / (len(motifs) + 1) * wavlist[0].duration * SEC
+		end = start + (m[1][-1] - m[1][0]) * SEC
+		offset = m[1][0] * SEC
+		segments.append((i + 1, start, end, offset, 0.8))
 		wavs.append(w.time_series)
 
 	return construct(wavs, segments)
