@@ -40,8 +40,7 @@ def get_bpm(waveform):
 		time_series = time_series[beat_start_window:]
 		count += 1
 		if len(inst_energy_buffer) == buffer_size:
-			if inst_energy_buffer[22] > constant * avg_energy and
-			(beat_start == [] or count - beat_start[-1] > redundancy_threshold):
+			if inst_energy_buffer[22] > constant * avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
@@ -60,6 +59,10 @@ def extract_instrumentals(time_series):
 	chan1, chan2 = np.hsplit(time_series, 2)
 	extracted = (chan1 - chan2) // 2
 	return np.hstack((extracted, np.copy(extracted)))
+
+def transpose_key(shift, waveform):
+	resampled = waveform.resampled(shift * wav.SEC)
+	wav.write('out.wav', resampled, wav.SEC)
 
 class MusicError(Exception):
 	pass
