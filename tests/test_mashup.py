@@ -2,6 +2,8 @@ SEC = 44100
 from .. import wav
 from .. import mashup
 
+# commented out for time purposes - can be uncommented and run to test mashup module
+
 # def test_simple():
 # 	wav1 = wav.Wav('data/for the first time.wav').time_series
 # 	wav2 = wav.Wav('data/i knew you were trouble.wav').time_series

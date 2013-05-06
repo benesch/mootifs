@@ -3,6 +3,8 @@ from .. import wav
 from .. import mashup
 from .. import music
 
+# commented out for time purposes - can be uncommented and run to test music module
+
 # def test_extract_instrumentals():
 # 	wav1 = wav.Wav('data/onerepublic.wav').time_series
 # 	wav1 = music.extract_instrumentals(wav1)
@@ -11,9 +13,9 @@ from .. import music
 # 	wav.write('extracted_onerepublic3.wav', mashup.construct(wavs, segments), SEC)
 
 # def test_transpose_key():
-# 	w = wav.Wav('data/sail.wav')
-# 	music.transpose_key(0.8, w)
+# w = wav.Wav('data/sail.wav')
+# music.transpose_key(0.8, w)
 
 # def test_get_bpm():
-# 	w = wav.Wav('data/i knew you were trouble.wav')
-# 	music.get_bpm(w)
+# w = wav.Wav('data/i knew you were trouble.wav')
+# music.get_bpm(w)

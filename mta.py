@@ -13,8 +13,8 @@ class Tracker:
 	matches. 
 
     Public variables:
-        word -- symbol sequence used to match symbol matrix data
-        loc  -- dictionary containing start index and length of matched motifs
+        word -- sequence used to match symbol matrix
+        loc  -- dictionary of start index and length of matched motifs
 	"""
 
 	def __init__(self, word):
@@ -121,11 +121,11 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 	count = 0
 	new_symbol_matrix = np.zeros(shape=(symbol_matrix_len, 2), dtype='S8')
 	new_symbol_matrix[0] = symbol_matrix[0]
+	s_prev = symbol_matrix[0]
 	for i in np.arange(symbol_matrix_len - 1):
+		print new_symbol_matrix
 		s = symbol_matrix[i + 1]
-		s_prev = new_symbol_matrix[i]
 		if s[0] == s_prev[0]:
-			count += int(s[-1]) - int(s_prev[-1])
 			if count == redundancy_threshold:
 				count = 0
 			elif count > redundancy_threshold:
@@ -133,8 +133,9 @@ def _generate_symbol_stage_matrix(redundancy_threshold, symbol_matrix):
 				new_symbol_matrix[i + 1] = [s[0], l]
 				count -= redundancy_threshold
 		else:
-			count = 0
 			new_symbol_matrix[i + 1] = s
+
+		s_prev = s
 
 	return new_symbol_matrix[~np.all(new_symbol_matrix == '', axis=1)]
 
@@ -168,16 +169,6 @@ def _eliminate_unmatched_trackers(tracker_list):
 		if len(t.loc) >= match_threshold:
 			matched_trackers[i] = t
 	return matched_trackers[matched_trackers != 0]
-
-def _verify_genuine_motifs(tracker_list, deviation_threshold):
-	"""Examines purported motif sequences and calculates the Euclidean distance
-	between them; if that distance is greater than a given threshold (which
-	dynamically increases based on the length of the motif involved), these
-	motifs (and thus their corresponding trackers) are discarded. Those that are
-	successful are stored in a motif list."""
-	pass
-
-	# may not be necessary in phase I of implementation
 
 
 def _mutate_trackers(tracker_list, mutation_template):

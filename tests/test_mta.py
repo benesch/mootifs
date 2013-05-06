@@ -46,19 +46,28 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 		self.assertTrue(np.all(symbol_matrix.flatten() == putative.flatten()))
 
 
-# class GenerateSymbolStageMatrixTests(unittest.TestCase):
+class GenerateSymbolStageMatrixTests(unittest.TestCase):
+	def setUp(self):
+		mta.symbol_list = map(chr, range(97, 105))
+		mta.PAA_interval = 1
 
-# class InitializeTrackerPopulationTests(unittest.TestCase):
-# 	def setUp(self):
-# 		mta.symbol_list = map(chr, range(97, 105))
+	def test_simple(self):
+		ts = np.array([1, 1, 1, 1, 1, 1, 2])
+		params = mta._convert_time_series(ts)
+		symbol_matrix = mta._generate_symbol_matrix(*params)
+		symbol_matrix = mta._generate_symbol_stage_matrix(7,symbol_matrix)
+		self.assertTrue(np.all(np.array([['a','0'],['h','5']]) == symbol_matrix))
+
+
+class InitializeTrackerPopulationTests(unittest.TestCase):
+	def setUp(self):
+		mta.symbol_list = map(chr, range(97, 105))
 		
-# 	def test_simple(self):
-# 		tracker_list = mta._initialize_tracker_population()
-# 		empty_loc = np.array([], dtype='object')
-# 		print map(lambda t: t.loc, tracker_list)
-# 		print [empty_loc] * len(mta.symbol_list)
-# 		self.assertEqual(map(lambda t: t.word, tracker_list),map(lambda s: [s],mta.symbol_list))
-# 		self.assertEqual(map(lambda t: t.loc, tracker_list), [empty_loc] * len(mta.symbol_list))
+	def test_simple(self):
+		tracker_list = mta._initialize_tracker_population()
+		empty_loc = np.array([], dtype='object')
+		self.assertEqual(map(lambda t: t.word, tracker_list),map(lambda s: [s],mta.symbol_list))
+		self.assertTrue(np.array_equal(np.array(map(lambda t: t.loc, tracker_list)), np.array([empty_loc] * len(mta.symbol_list))))
 
 
 class MatchTrackersTests(unittest.TestCase):
