@@ -50,13 +50,11 @@ def get_bpm(waveform):
 	return len(beat_start) / 2
 
 def extract_instrumentals(time_series):
-	"""Attempts to remove vocals by subtracting the channels
-
+	"""	Relies on vocals being mixed equally between channels. Returns an array of
+	the same shape, but the channels will be duplicates of one another.
+	
 	Arguments:
 		time_series -- the numpy array of samples. Must be stereo (two channel).
-
-	Relies on vocals being mixed equally between channels. Returns an array of
-	the same shape, but the channels will be duplicates of one another.
 	"""
 	if time_series.ndim != 2 or time_series.shape[1] != 2:
 		raise MusicError('must be stereo time_series')
