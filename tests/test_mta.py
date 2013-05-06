@@ -22,7 +22,7 @@ class ConvertTimeSeriesTests(unittest.TestCase):
 		diff, scores = mta._convert_time_series(ts)		
 
 		self.assertTrue(np.all(diff == ts_diff_norm))
-		
+
 
 class GenerateSymbolMatrixTests(unittest.TestCase):
 	def setUp(self):
@@ -33,7 +33,8 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 		ts = np.array([1, 1, 1, 1, 1, 1, 2])
 		params = mta._convert_time_series(ts)
 		symbol_matrix = mta._generate_symbol_matrix(*params)
-		putative = np.array([['a', '0'], ['a', '1'], ['a', '2'], ['a', '3'], ['a', '4'], ['h', '5']], dtype='S8')
+		putative = np.array([['a', '0'], ['a', '1'], ['a', '2'], ['a', '3'],
+							 ['a', '4'], ['h', '5']], dtype='S8')
 		self.assertTrue(np.all(symbol_matrix.flatten() == putative.flatten()))
 
 	def test_complex(self):
@@ -53,8 +54,11 @@ class GenerateSymbolMatrixTests(unittest.TestCase):
 		
 # 	def test_simple(self):
 # 		tracker_list = mta._initialize_tracker_population()
+# 		empty_loc = np.array([], dtype='object')
+# 		print map(lambda t: t.loc, tracker_list)
+# 		print [empty_loc] * len(mta.symbol_list)
 # 		self.assertEqual(map(lambda t: t.word, tracker_list),map(lambda s: [s],mta.symbol_list))
-# 		self.assertEqual(map(lambda t: t.starts, tracker_list), [[]] * len(mta.symbol_list))
+# 		self.assertEqual(map(lambda t: t.loc, tracker_list), [empty_loc] * len(mta.symbol_list))
 
 
 class MatchTrackersTests(unittest.TestCase):
@@ -93,9 +97,10 @@ class MutateTrackersTests(unittest.TestCase):
 	def test_simple(self):
 		mutation_template = mta._initialize_tracker_population()
 		tracker_list = mta._mutate_trackers(mutation_template, mutation_template)
-		permutations = list(sorted(itertools.product(map(lambda t: t.word, mutation_template), repeat=2)))
+		permutations = itertools.product(map(lambda t: t.word, mutation_template), repeat=2)
+		sorted_permutations = list(sorted(permutations))
 		mutated = []
-		for perm in permutations:
+		for perm in sorted_permutations:
 			mutant = []
 			for elt in perm:
 				mutant += elt
@@ -103,4 +108,15 @@ class MutateTrackersTests(unittest.TestCase):
 
 		self.assertTrue(np.all(map(lambda t: t.word, tracker_list) == np.array(mutated)))
 
-# class StreamlineMotifsTests(unittest.TestCase):
+
+class StreamlineMotifsTests(unittest.TestCase):
+	def test_simple(self):
+		submotif = mta.Tracker(['m','o','o'])
+		motif = mta.Tracker(['m','o','o','t','i','f','s'])
+		submotif.loc = np.append(submotif.loc, {'start': '0', 'len': '3'})
+		motif.loc = np.append(motif.loc, {'start': '20', 'len': '7'})
+		submotif.loc = np.append(submotif.loc, {'start': '42', 'len': '3'})
+		motif.loc = np.append(motif.loc, {'start': '42', 'len': '7'})
+		motif_list = np.array([submotif, motif])
+		motif_list = mta._streamline_motifs(motif_list)
+		self.assertTrue(len(motif_list) == 1)
