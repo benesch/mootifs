@@ -43,7 +43,6 @@ def get_bpm(waveform):
 		if len(inst_energy_buffer) == buffer_size:
 			if inst_energy_buffer[22] > constant * avg_energy and
 			(beat_start == [] or count - beat_start[-1] > redundancy_threshold):
-				print "beat found at " + count
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
@@ -52,7 +51,7 @@ def get_bpm(waveform):
 def extract_instrumentals(time_series):
 	"""	Relies on vocals being mixed equally between channels. Returns an array of
 	the same shape, but the channels will be duplicates of one another.
-	
+
 	Arguments:
 		time_series -- the numpy array of samples. Must be stereo (two channel).
 	"""
