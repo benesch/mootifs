@@ -61,7 +61,7 @@ def command_wav(*files):
             print "\tstart {}s, length {}s".format(start_sec, len_sec)
 
 def command_csv(*files):
-    arr = numpy.genfromtxt(csvfile[0], delimiter=',')
+    arr = numpy.genfromtxt(files[0], delimiter=',')
     if arr.ndim > 1:
         raise Error('csv has more than one column')
 
