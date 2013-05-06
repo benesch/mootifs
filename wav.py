@@ -89,7 +89,7 @@ class Wav:
         Returns resampled numpy array of size (nsamples, nchannels)
         """
         dtype = self.time_series.dtype
-        return signal.resample(self.time_series, nsamples).astype(dtype)
+        return signal.resample(self.time_series, nsamples).astype(numpy.int16)
 
 def mono(samples):
     if samples.ndim > 1:

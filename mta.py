@@ -191,7 +191,8 @@ def _mutate_trackers(tracker_list, mutation_template):
 	new_tracker_list = np.zeros(len(tracker_list) * len(mutation_template), dtype='object')
 	for i in np.arange(len(tracker_list)):
 		for j in np.arange(len(mutation_template)):
-			new_tracker_list[i * len(mutation_template) + j] = Tracker(np.append(tracker_list[i].word, mutation_template[j].word))
+			new_tracker_list[i * len(mutation_template) + j] = \
+			Tracker(np.append(tracker_list[i].word, mutation_template[j].word))
 	return np.trim_zeros(new_tracker_list)
 
 
@@ -206,7 +207,8 @@ def _streamline_motifs(motif_list):
 			sublocs = submotif.loc
 			submotif.loc = np.zeros(len(sublocs), dtype='object')
 			for i in np.arange(len(sublocs)):
-				if loc['start'] <= sublocs[i]['start'] and sublocs[i]['start'] + sublocs[i]['len'] <= loc['start'] + loc['len']:
+				if (loc['start'] <= sublocs[i]['start'] and
+					sublocs[i]['start'] + sublocs[i]['len'] <= loc['start'] + loc['len']):
 					pass
 				else:
 					submotif.loc[i] = sublocs[i]
