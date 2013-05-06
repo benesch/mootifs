@@ -2,11 +2,13 @@
 **cs51 final project, harvard university**
 nikhil benesch, joseph botros, francis loh
 
+
 ## instructions
 ### requirements
 - Python 2.7.4
 - NumPy/SciPy
 - nose (Python test runner)
+
 
 ### installation
 These instructions apply to OS X Mountain Lion. 
@@ -21,10 +23,87 @@ These instructions apply to OS X Mountain Lion.
 
 In short, just get the requirements installed somehow.
 
-###usage
-Beta instructions to run our version of the MTA.
 
-1. `python` will open the Python shell
-2. `import mashup` will import the mashup module
-3. `m = mashup.make_mashup()` will create a list of tracker objects corresponding to identified motifs
-4. Examine the result by looking at specific trackers and their matches: `m[-1].word` returns the matched symbol sequence of the last tracker, while `m[-1].starts` returns a list of start points for the motif. Since our PAA calculation uses a sliding scale, these indices correspond to the indices in our original list. Looking back at the original data in Excel, we can display the motifs of interest by taking the data points starting at the indicated positions in the tracker and spanning the length of the motif symbol sequence. We plan to build in functionality so as to not have to do this manually in our final version.
+###usage
+mootifs.py is a command-line interface to our code. From within the appropriate
+virtual environment, run 
+
+    python mootifs.py [command] [options...]
+
+Git should set the executable bit, so you can invoke `./mootifs.py` directly as
+well. Run the command with no options to see brief usage instructions,
+reproduced below.
+
+    usage: mootifs [command]
+    commands:
+        bpm [wav]                    - detect bpm of wav
+        instrumental [in] [out]      - extract instrumentals
+        transpose [in] [out] [shift] - change pitch by shift factor
+        mash [file] [file] ... [out] - generate mashup from files
+        wav [file]                   - find motifs from wav file
+        csv [file]                   - find motifs from csv file
+
+####bpm
+Takes the path to one wave file `wav`. Outputs the beats per minute.
+
+####instrumental
+Takes the path to an input wave file `in` and output wave file `out`. Writes
+an instrumental version to `out`.
+
+####transpose
+Takes the path to an input wave file `in` and output wave file `out`. Scales
+song by `shift` factor, thus changing the pitch. Use floats greater than 1
+to lengthen song and lower pitch, or floats less than 1 to shorten song and
+increase pitch.
+
+####mash
+Generate a mashup from `file`s and write out into `out` file. Uses the first
+file passed as an instrumental backdrop, and cycles through motifs of all 
+additional files passed in.
+
+Note that this command can take quite a while to run, especially on larger
+wave files. We recommend creating mashups with no more than three songs.
+
+####wav
+Find motifs within wave `file`. This command uses less downsampling than the 
+mashup command to provide more resolution for the MTA. Thus, the motifs returned
+by this command may not be the same motifs used in mashup generation.
+
+Motifs are output in the following format
+
+        ['?' '?' '?' '?' '?']
+            start ##, length ##
+            start ##, length ##
+            start ##, length ##
+
+where each `?` represents a symbol in the motif, and each following line denotes
+a discovered instance of the motif, starting at row ## with length ##.
+
+####csv
+Find motifs with csv `file`. This command takes approximately 10 minutes to
+run on a data file with 1000 entries. The CSV should contain only one column
+of data, where rows are separated by newline characters '\n'.
+
+Motifs are output in the following format
+
+        ['?' '?' '?' '?' '?']
+            start ##, length ##
+            start ##, length ##
+            start ##, length ##
+
+where each `?` represents a symbol in the motif, and each following line denotes
+a discovered instance of the motif, starting at row ## with length ##.
+
+####general notes
+Not all wave file formats are supported. In particular, wave files must be
+uncompressed, with samples stored as 8-, 16-, or 32-bit integers.
+
+
+###testing
+Run `nosetests` to invoke the nose test runner. This will run autodiscover all
+tests located in files in the tests/ diretory.
+
+Testcases for algorithms are enabled by default. Testing the music and mashup
+modules require generation of wav files and are commented out by default.
+To run these tests, uncomment the tests in the appropriate files
+(`tests/test_music.py` and `tests/test_mashup.py`).
