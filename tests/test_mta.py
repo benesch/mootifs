@@ -22,9 +22,7 @@ class ConvertTimeSeriesTests(unittest.TestCase):
 		diff, scores = mta._convert_time_series(ts)		
 
 		self.assertTrue(np.all(diff == ts_diff_norm))
-		print diff
-		print scores
-
+		
 
 class GenerateSymbolMatrixTests(unittest.TestCase):
 	def setUp(self):
