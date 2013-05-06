@@ -40,10 +40,8 @@ def get_bpm(time_series):
 		count += 1
 		#print len(inst_energy_buffer)
 		if len(inst_energy_buffer) == buffer_size:
-			variance = 0
-			variance = (np.std(inst_energy_buffer))**2
-			#print 1.3 * avg_energy, inst_energy_buffer[22]
-			if inst_energy_buffer[22] > ((constant1*variance) - constant2) and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
+			print inst_energy_buffer[22]
+			if inst_energy_buffer[22] > 1.3*avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
