@@ -206,7 +206,9 @@ def _streamline_motifs(motif_list):
 			sublocs = submotif.loc
 			submotif.loc = np.zeros(len(sublocs), dtype='object')
 			for i in np.arange(len(sublocs)):
-				if not (loc['start'] <= sublocs[i]['start'] and sublocs[i]['start'] + sublocs[i]['len'] <= loc['start'] + loc['len']):
+				if loc['start'] <= sublocs[i]['start'] and sublocs[i]['start'] + sublocs[i]['len'] <= loc['start'] + loc['len']:
+					pass
+				else:
 					submotif.loc[i] = sublocs[i]
 			submotif.loc = submotif.loc[submotif.loc != 0]
 		return submotif
