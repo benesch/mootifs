@@ -13,7 +13,7 @@ def get_bpm(waveform):
 	""" calculates the bpm of a given song using the algorithm found here:
 	http://archive.gamedev.net/archive/reference/programming/
 	features/beatdetection/"""
-	time_series = waveform.time_series
+	time_series = waveform.time_series[:10 * waveform.sample_rate]
 	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
 	repeat_list = deque([])
@@ -45,7 +45,7 @@ def get_bpm(waveform):
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
-	return len(beat_start) / 2
+	return len(beat_start) * 4
 
 def extract_instrumentals(time_series):
 	"""	Relies on vocals being mixed equally between channels. Returns an array
