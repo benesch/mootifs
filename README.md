@@ -72,12 +72,12 @@ by this command may not be the same motifs used in mashup generation.
 Motifs are output in the following format
 
         ['?' '?' '?' '?' '?']
-            start ##, length ##
-            start ##, length ##
-            start ##, length ##
+            start ##s, length ##s
+            start ##s, length ##s
+            start ##s, length ##s
 
 where each `?` represents a symbol in the motif, and each following line denotes
-a discovered instance of the motif, starting at row ## with length ##.
+a discovered instance of the motif, starting at time ##s with length ##s.
 
 ####csv
 Find motifs with csv `file`. This command takes approximately 10 minutes to
@@ -96,7 +96,9 @@ a discovered instance of the motif, starting at row ## with length ##.
 
 ####general notes
 Not all wave file formats are supported. In particular, wave files must be
-uncompressed, with samples stored as 8-, 16-, or 32-bit integers.
+uncompressed, with samples stored as 8-, 16-, or 32-bit integers. If a 
+particular wave file is denoted unreadable, try re-exporting from audio editing
+software with all metadata removed.
 
 
 ###testing
