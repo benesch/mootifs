@@ -62,15 +62,5 @@ def extract_instrumentals(time_series):
 	extracted = (chan1 - chan2) // 2
 	return np.hstack((extracted, np.copy(extracted)))
 
-def test_extract_instrumentals():
-	w = wav.Wav("sail.wav")
-	chan1 = w.time_series()
-	extract_instrumentals(chan1)
-
-def test_bpm():
-	w = wav.Wav("sail.wav")
-	chan1 = w.time_series()
-	get_bpm(chan1)
-
 class MusicError(Exception):
 	pass
