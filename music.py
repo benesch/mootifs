@@ -17,7 +17,7 @@ def get_bpm(waveform):
 	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
 	repeat_list = deque([])
-	redundancy_threshold = 10
+	redundancy_threshold = 3
 
 	def _compute_instant_energy(time_series):
 		""" gets sum of energy contained in over 1024 parts
@@ -62,8 +62,8 @@ def extract_instrumentals(time_series):
 	return np.hstack((extracted, np.copy(extracted)))
 
 def transpose_key(shift, waveform):
-	resampled = waveform.resampled(shift * wav.SEC)
-	wav.write('out.wav', resampled, wav.SEC)
+	resampled = waveform.resample(int(shift * waveform.nsamples))
+	return resampled
 
 class MusicError(Exception):
 	pass

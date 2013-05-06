@@ -35,7 +35,7 @@ def command_transpose(*args):
         usage()
         return
     w = wav.Wav(args[0])
-    out = music.extract_instrumentals(w.time_series, args[2])
+    out = music.transpose_key(float(args[2]), w)
     wav.write(args[1], out, w.sample_rate)
 
 def command_mash(*args):
@@ -85,7 +85,7 @@ if len(sys.argv) > 2:
     elif command == 'instrumental':
         command_instrumental(*args)
     elif command == 'transpose':
-        command_tranpose(*args)
+        command_transpose(*args)
     elif command == 'mash':
         command_mash(*args)
     elif command == 'wav':
