@@ -25,11 +25,10 @@ def mean(lst):
 	return sum(lst) / len(lst)
 
 def get_longest_motif(time_series):
-
 	motif_list = get_motifs(time_series)
 
 	def find_longest(m, t):
-		if t.loc['len'] > m.loc['len']:
+		if t.loc[0]['len'] > m.loc[0]['len']:
 			return t
 		else:
 			return m

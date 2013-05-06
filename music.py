@@ -9,10 +9,11 @@ constant1, constant2 = -0.0025714, 1.5142857
 beat_start_window = 1024
 buffer_size = 43
 
-def get_bpm(time_series):
+def get_bpm(waveform):
 	""" calculates the bpm of a given song using the algorithm found here:
 	http://archive.gamedev.net/archive/reference/programming/
 	features/beatdetection/"""
+	time_series = waveform.time_series
 
 	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
@@ -38,14 +39,13 @@ def get_bpm(time_series):
 		avg_energy = _compute_average_energy(inst_energy_buffer)
 		time_series = time_series[beat_start_window:]
 		count += 1
-		#print len(inst_energy_buffer)
 		if len(inst_energy_buffer) == buffer_size:
-			print inst_energy_buffer[22]
-			if inst_energy_buffer[22] > 1.3*avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
+			if inst_energy_buffer[22] > 1.3 * avg_energy and (beat_start == [] or count - beat_start[-1] > redundancy_threshold):
+				print "beat found at " + count
 				beat_start.append(count)
 			inst_energy_buffer.pop()
 
-	return len(beat_start)
+	return len(beat_start) / 2
 
 def extract_instrumentals(time_series):
 	"""Attempts to remove vocals by subtracting the channels
