@@ -14,11 +14,10 @@ def get_bpm(waveform):
 	http://archive.gamedev.net/archive/reference/programming/
 	features/beatdetection/"""
 	time_series = waveform.time_series
-
 	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
 	repeat_list = deque([])
-	redundancy_threshold = 3
+	redundancy_threshold = 10
 
 	def _compute_instant_energy(time_series):
 		""" gets sum of energy contained in over 1024 parts
