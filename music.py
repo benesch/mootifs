@@ -9,10 +9,11 @@ constant1, constant2 = -0.0025714, 1.5142857
 beat_start_window = 1024
 buffer_size = 43
 
-def get_bpm(time_series):
+def get_bpm(waveform):
 	""" calculates the bpm of a given song using the algorithm found here:
 	http://archive.gamedev.net/archive/reference/programming/
 	features/beatdetection/"""
+	time_series = waveform.time_series
 
 	inst_energy_buffer, count = deque([], buffer_size), 0
 	beat_start = []
